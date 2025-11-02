@@ -4,6 +4,8 @@
 # Ignore build folder
 /build/
 
+.vscode/
+
 ### C ###
 # Prerequisites
 *.d
