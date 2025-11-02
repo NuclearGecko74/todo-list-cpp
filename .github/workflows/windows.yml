@@ -1,28 +1,34 @@
-name: Windows CI Test
+name: Windows CI
 
 on:
   push:
-    branches: [ main, master, dev ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ main, master, dev ]
+    branches: [ "main" ]
 
 jobs:
   build:
     runs-on: windows-latest
+
     steps:
-    - uses: actions/checkout@v2
-    - name: prepare
-      run: |
-        make prepare
-    - name: configure
-      run: |
-        cmake -H"." -Bbuild -T host=x86 -A x64 -DCMAKE_BUILD_TYPE="Debug"
-    - name: building
-      run: |
-        cmake --build build --config Debug --target unit_tests -j4
-    - name: testing
-      run: |
-        cd build
-        cd tests
-        cd Debug
-        .\unit_tests.exe
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up vcpkg (Instala raylib/raygui)
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgJsonGlob: 'vcpkg.json'
+          vcpkgCache: true
+
+      - name: Configure CMake
+        uses: lukka/run-cmake@v10
+        with:
+          buildDirectory: '${{ github.workspace }}/build'
+          cmakeOptions: '-DCMAKE_TOOLCHAIN_FILE=${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake -DCMAKE_BUILD_TYPE=Release'
+
+      - name: Build Project
+        uses: lukka/run-cmake@v10
+        with:
+          buildDirectory: '${{ github.workspace }}/build'
+          cmakeBuildTarget: 'all'
+          cmakeBuildOptions: '--config Release'
