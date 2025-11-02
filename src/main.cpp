@@ -5,7 +5,7 @@ int main()
     constexpr int screenWidth = 800;
     constexpr int screenHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "raylib [core] example - basic window");
+    InitWindow(screenWidth, screenHeight, "To-Do List");
 
     SetTargetFPS(60);
 
@@ -15,7 +15,7 @@ int main()
 
         ClearBackground(RAYWHITE);
 
-        DrawText("Congrats! You created your first window!", 190, 200, 20, LIGHTGRAY);
+        DrawText("Congrats! You created your first window!", 190, 200, 20, BLACK);
 
         EndDrawing();
     }
