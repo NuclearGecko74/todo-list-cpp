@@ -12,6 +12,7 @@ add_executable(TodoList
         src/main.cpp
         src/Task.cpp
         src/App.cpp
+        src/TaskList.cpp
 )
 
 target_include_directories(TodoList PUBLIC include)
