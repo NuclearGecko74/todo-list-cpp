@@ -15,7 +15,7 @@ int main()
 
         ClearBackground(RAYWHITE);
 
-        DrawText("Congrats! You created your first window!", 190, 200, 20, BLACK);
+        DrawText("Toy chica es la unica animatronico, la cual lleva ropa la cual es un short, que la hace ver muy SECY", 0, 200, 20, BLACK);
 
         EndDrawing();
     }
