@@ -7,20 +7,30 @@
 
 class TaskList {
 private:
-    std::string m_listName;
-    short m_size = 0;
+    std::string m_name;
+    std::string m_description;
     std::vector<Task> m_List;
 
 public:
-    // Constructors
+    // constructors
     TaskList() = delete;
 
-    explicit TaskList(std::string name)
-        : m_listName((std::move(name) )) {};
+    explicit TaskList(const std::string& name)
+        : m_name(name) {};
 
-    explicit TaskList(std::string name, Task task);
+    explicit TaskList(const std::string& name, const std::string& description)
+        :  m_name(name), m_description(description) {};
 
-    //
+    explicit TaskList(const std::string& name, const Task& task);
+
+    explicit TaskList(const std::string& name, const std::string& description, const Task& task);
+
+    // setters
+    inline void setName(const std::string& name) { m_name = name; }
+
+    // getters
+    [[nodiscard]] inline std::string getName() const { return m_name; }
+    [[nodiscard]] inline size_t getSize() const { return m_List.size(); }
 };
 
 #endif //TODOLIST_TASKLIST_H
