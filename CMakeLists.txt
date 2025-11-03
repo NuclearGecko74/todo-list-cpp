@@ -11,6 +11,7 @@ find_package(raylib CONFIG REQUIRED)
 add_executable(TodoList
         src/main.cpp
         src/Task.cpp
+        src/App.cpp
 )
 
 target_include_directories(TodoList PUBLIC include)
