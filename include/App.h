@@ -1,12 +1,15 @@
-﻿//
-// Created by user on 02/11/2025.
-//
-
-#ifndef TODOLIST_APP_H
+﻿#ifndef TODOLIST_APP_H
 #define TODOLIST_APP_H
 
-class App {
+#include <raylib.h>
 
+class App {
+private:
+
+public:
+    App();
+
+    void run();
 };
 
 #endif //TODOLIST_APP_H
