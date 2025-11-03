@@ -1,36 +1,31 @@
 ﻿#ifndef TODOLIST_TASK_H
 #define TODOLIST_TASK_H
+
 #include <chrono>
 #include <string>
-
+#include <utility>
 
 class Task {
 private:
-    std::string title;
-    std::string description;
-    bool statusComplete;
-    std::chrono::system_clock::time_point dueDate; // Fecha y hora
+    std::string m_title;
+    std::string m_description;
+    bool m_statusComplete;
+    std::chrono::system_clock::time_point m_dueDate; // Date & time
 
 public:
-    Task(const std::string& tit = "", const std::string& desc = "")
-        : title(tit), description(desc), statusComplete(false) {}
+    explicit Task(std::string  title = "", std::string  description = "")
+        : m_title(std::move(title)), m_description(std::move(description)), m_statusComplete(false) {}
 
-    void setTitle(std::string newTitle);
-
-    std::string getTitle();
-
-    void setDescription(std::string newDescription);
-
-    std::string getDescription();
-
-    void setStatus(bool newStatus);
-
-    //Retorna el estado en forma de bool (false = en progreso, true = completada)
-    bool getStatus();
-
+    // Setters
+    inline void setTitle(const std::string& newTitle) { m_title = newTitle; }
+    inline void setDescription(const std::string& newDescription) { m_description = newDescription; }
+    inline void setStatus(bool newStatus) { m_statusComplete = newStatus; }
     void setDueDate(int year, int month, int day, int hour = 0, int minute = 0, int second = 0);
 
-    // Retorna la fecha como string desde un ctime_s usando un bufer
-    std::string getDueDate() const;
+    // Getters
+    [[nodiscard]] inline std::string getTitle() const { return m_title; }
+    [[nodiscard]] inline std::string getDescription() const { return m_description; }
+    [[nodiscard]] inline bool getStatus() const { return m_statusComplete; } // false = in progress, true = completed
+    [[nodiscard]] std::string getDueDate() const;
 };
 #endif //TODOLIST_TASK_H
