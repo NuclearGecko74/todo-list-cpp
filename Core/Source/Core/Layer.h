@@ -1,6 +1,7 @@
 ﻿#ifndef TODOLIST_LAYER_H
 #define TODOLIST_LAYER_H
 
+#include "Event.h"
 
 namespace Core {
     class Layer {
@@ -14,7 +15,5 @@ namespace Core {
         virtual void OnRender() {}
     };
 }
-
-
 
 #endif

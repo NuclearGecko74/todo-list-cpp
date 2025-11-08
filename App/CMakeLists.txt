@@ -8,6 +8,8 @@ set(SOURCES
         Source/AppLayer.h
 )
 
+add_executable(App)
+
 target_sources(App PRIVATE ${SOURCES})
 
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${SOURCES})
