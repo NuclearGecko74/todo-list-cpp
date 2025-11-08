@@ -1,8 +1,4 @@
-﻿//
-// Created by user on 08/11/2025.
-//
-
-#ifndef TODOLIST_WINDOW_H
+﻿#ifndef TODOLIST_WINDOW_H
 #define TODOLIST_WINDOW_H
 
 #include <string>
