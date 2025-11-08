@@ -1,22 +1,13 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.10)
 
-project(TodoList LANGUAGES CXX C)
+project(TodoList)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
 
-find_package(raylib CONFIG REQUIRED)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-add_executable(TodoList
-        src/main.cpp
-        src/Task.cpp
-        src/App.cpp
-        src/TaskList.cpp
-)
+include(Dependencies.cmake)
 
-target_include_directories(TodoList PUBLIC include)
-
-target_link_libraries(TodoList PRIVATE
-        raylib
-)
+add_subdirectory(Core)
+add_subdirectory(App)

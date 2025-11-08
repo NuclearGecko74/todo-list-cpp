@@ -1,9 +1,0 @@
-{
-  "name" : "todolist",
-  "version-string" : "1.0.0",
-  "builtin-baseline" : "e3ed41868d5034bc608eaaa58383cd6ecdbb5ffb",
-  "dependencies" : [ {
-    "name" : "raylib",
-    "version>=" : "5.5#1"
-  } ]
-}
