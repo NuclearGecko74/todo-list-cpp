@@ -2,10 +2,12 @@
 
 AppLayer::AppLayer()
 {
+
 }
 
 AppLayer::~AppLayer()
 {
+
 }
 
 void AppLayer::OnEvent(Event &event)
