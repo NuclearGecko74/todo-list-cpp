@@ -1,6 +1,10 @@
 ﻿#include "Core/Application.h"
 
-#include "AppLayer.h"
+#include "UI/AppLayer.h"
+
+#ifndef NDEBUG
+    #include "UI/DebugLayer.h"
+#endif
 
 int main()
 {
@@ -10,6 +14,12 @@ int main()
     appSpec.WindowSpec.Height = 1080;
 
     Core::Application application(appSpec);
+
     application.PushLayer<AppLayer>();
+
+#ifndef NDEBUG
+    application.PushLayer<DebugLayer>();
+#endif
+
     application.Run();
 }

@@ -4,8 +4,10 @@
 
 set(SOURCES
         Source/Main.cpp
-        Source/AppLayer.cpp
-        Source/AppLayer.h
+        Source/UI/AppLayer.cpp
+        Source/UI/AppLayer.h
+        Source/UI/DebugLayer.cpp
+        Source/UI/DebugLayer.h
 )
 
 add_executable(App)
