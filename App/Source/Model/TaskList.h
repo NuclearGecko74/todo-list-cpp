@@ -1,7 +1,6 @@
-#ifndef TODOLIST_TASKLIST_H
+﻿#ifndef TODOLIST_TASKLIST_H
 #define TODOLIST_TASKLIST_H
 
-#include <iostream>
 #include <vector>
 #include "Task.h"
 
@@ -33,4 +32,4 @@ public:
     [[nodiscard]] inline size_t getSize() const { return m_List.size(); }
 };
 
-#endif //TODOLIST_TASKLIST_H
+#endif

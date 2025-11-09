@@ -28,4 +28,6 @@ public:
     [[nodiscard]] inline bool getStatus() const { return m_statusComplete; } // false = in progress, true = completed
     [[nodiscard]] std::string getDueDate() const;
 };
-#endif //TODOLIST_TASK_H
+
+
+#endif
