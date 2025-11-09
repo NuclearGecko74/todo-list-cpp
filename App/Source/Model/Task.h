@@ -23,7 +23,7 @@ public:
     inline void setTitle(const std::string& newTitle) { m_title = newTitle; }
     inline void setDescription(const std::string& newDescription) { m_description = newDescription; }
     inline void setStatus(const bool newStatus) { m_statusComplete = newStatus; }
-    void setDueDate(int year, int month, int day, int hour = 0, int minute = 0, int second = 0);
+    void setDueDate(std::tm timeStruct = std::tm());
 
     // Getters
     [[nodiscard]] inline int getId() const { return m_id; }
