@@ -1,4 +1,5 @@
 ﻿#include "Task.h"
+
 #include <iostream>
 #include <chrono>
 #include <ctime>
@@ -16,6 +17,16 @@ void Task::setDueDate(int year, int month, int day, int hour, int minute, int se
 
     std::time_t timeValue = std::mktime(&timeStruct);
     m_dueDate = std::chrono::system_clock::from_time_t(timeValue);
+}
+
+std::string Task::getCreateDate() const
+{
+    // Get the current calendar time as a time_t object
+    const std::time_t now = std::time(nullptr);
+
+    // Convert the time_t object to a human-readable string
+    const char* date_time_str = std::ctime(&now);
+    return date_time_str;
 }
 
 // Returns date and time using ctime

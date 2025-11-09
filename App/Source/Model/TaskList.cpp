@@ -1,14 +1,23 @@
 ﻿#include "TaskList.h"
 
-TaskList::TaskList(const std::string& name, const Task& task)
+TaskList::TaskList(const int id, const std::string& name, const Task& task, const int userId)
+    : m_id(id), m_name(name), m_userId(userId)
 {
-    m_name = name;
     m_List.emplace_back(task);
 }
 
-TaskList::TaskList(const std::string &name, const std::string &description, const Task& task)
+TaskList::TaskList(const int id, const std::string& name, const std::string& description, const Task& task, const int userId)
+    : m_id(id), m_name(name), m_description(description), m_userId(userId)
 {
-    m_name = name;
-    m_description = description;
     m_List.emplace_back(task);
+}
+
+std::string TaskList::getCreateDate() const
+{
+    // Get the current calendar time as a time_t object
+    const std::time_t now = std::time(nullptr);
+
+    // Convert the time_t object to a human-readable string
+    const char* date_time_str = std::ctime(&now);
+    return date_time_str;
 }

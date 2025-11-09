@@ -1,35 +1,43 @@
 ﻿#ifndef TODOLIST_TASKLIST_H
 #define TODOLIST_TASKLIST_H
 
+#include <iostream>
 #include <vector>
 #include "Task.h"
 
 class TaskList {
 private:
+    int m_id;
     std::string m_name;
     std::string m_description;
     std::vector<Task> m_List;
+    std::chrono::system_clock::time_point m_createDate;
+    int m_userId;
 
 public:
     // constructors
     TaskList() = delete;
 
-    explicit TaskList(const std::string& name)
-        : m_name(name) {};
+    explicit TaskList(const int id, const std::string& name, const int userId)
+        : m_id(id), m_name(name), m_userId(userId) {};
 
-    explicit TaskList(const std::string& name, const std::string& description)
-        :  m_name(name), m_description(description) {};
+    explicit TaskList(const int id, const std::string& name, const std::string& description, const int userId)
+        :  m_id(id), m_name(name), m_description(description), m_userId(userId) {};
 
-    explicit TaskList(const std::string& name, const Task& task);
+    explicit TaskList(const int id, const std::string& name, const Task& task, const int userId);
 
-    explicit TaskList(const std::string& name, const std::string& description, const Task& task);
+    explicit TaskList(const int id, const std::string& name, const std::string& description, const Task& task, const int userId);
 
     // setters
-    inline void setName(const std::string& name) { m_name = name; }
+    inline void setId (const int newId) { m_id = newId; };
+    inline void setName(const std::string& newName) { m_name = newName; }
+    inline void setDescription(const std::string& newDescription) { m_description = newDescription; }
 
     // getters
     [[nodiscard]] inline std::string getName() const { return m_name; }
+    [[nodiscard]] inline std::string getDescription() const { return m_description; }
     [[nodiscard]] inline size_t getSize() const { return m_List.size(); }
+    [[nodiscard]] std::string getCreateDate() const;
 };
 
 #endif
