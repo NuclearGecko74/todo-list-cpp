@@ -12,6 +12,7 @@ namespace Core {
         uint32_t Height = 720;
         bool IsResizeable = true;
         bool VSync = true;
+        std::string IconPath;
     };
 
     class Window {

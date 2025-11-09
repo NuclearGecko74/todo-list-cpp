@@ -19,6 +19,22 @@ namespace Core {
 
         SetTargetFPS(60);
 
+        if (!m_Specification.IconPath.empty())
+        {
+            Image icon = LoadImage(m_Specification.IconPath.c_str());
+
+            if (icon.data)
+            {
+                SetWindowIcon(icon);
+                UnloadImage(icon);
+            }
+            else
+            {
+                std::cerr << "WARNING: Could not load icon from: "
+                          << m_Specification.IconPath << std::endl;
+            }
+        }
+
         std::cout << "Raylib window initialized.\n";
     }
 
