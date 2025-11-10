@@ -34,5 +34,14 @@ void TaskList::addTask(const TaskSpecification& taskSpecification)
 
 void TaskList::deleteTask(const int id)
 {
-    
+    auto refTaskDeleted = std::ranges::find(m_List, id, &Task::getId);
+
+    if (refTaskDeleted != m_List.end())
+    {
+        refTaskDeleted->setIsDeleted(true);
+    }
+    else
+    {
+        std::cout << "Task not found\n";
+    }
 }
