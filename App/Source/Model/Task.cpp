@@ -11,16 +11,6 @@ void Task::setDueDate(std::tm timeStruct)
     m_dueDate = std::chrono::system_clock::from_time_t(timeValue);
 }
 
-std::string Task::getCreateDate() const
-{
-    // Get the current calendar time as a time_t object
-    const std::time_t now = std::time(nullptr);
-
-    // Convert the time_t object to a human-readable string
-    const char* date_time_str = std::ctime(&now);
-    return date_time_str;
-}
-
 // Returns date and time using ctime
 std::string Task::getDueDate() const
 {

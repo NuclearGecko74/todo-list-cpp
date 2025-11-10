@@ -5,6 +5,14 @@
 #include <vector>
 #include "Task.h"
 
+struct TaskSpecification{
+    int Id = -1;
+    std::string Name = "Unnamed Task";
+    std::string Description;
+    bool Status = false;
+    std::tm DueDate;
+};
+
 class TaskList {
 private:
     int m_id;
@@ -38,6 +46,10 @@ public:
     [[nodiscard]] inline std::string getDescription() const { return m_description; }
     [[nodiscard]] inline size_t getSize() const { return m_List.size(); }
     [[nodiscard]] std::string getCreateDate() const;
+
+    // methods
+    void addTask(const TaskSpecification& taskSpecification);
+    void deleteTask(const int id);
 };
 
 #endif

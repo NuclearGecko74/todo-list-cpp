@@ -21,3 +21,18 @@ std::string TaskList::getCreateDate() const
     const char* date_time_str = std::ctime(&now);
     return date_time_str;
 }
+
+void TaskList::addTask(const TaskSpecification& taskSpecification)
+{
+    Task newTask(taskSpecification.Id, taskSpecification.Name, taskSpecification.Description);
+
+    newTask.setStatus(taskSpecification.Status);
+    newTask.setDueDate(taskSpecification.DueDate);
+
+    m_List.emplace_back(newTask);
+}
+
+void TaskList::deleteTask(const int id)
+{
+    
+}
