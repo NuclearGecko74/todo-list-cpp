@@ -1,6 +1,7 @@
 ﻿#include "Core/Application.h"
-
 #include "UI/AppLayer.h"
+
+#define RAYGUI_IMPLEMENTATION
 
 #ifndef NDEBUG
     #include "UI/DebugLayer.h"

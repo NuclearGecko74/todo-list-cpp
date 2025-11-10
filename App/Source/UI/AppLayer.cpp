@@ -1,14 +1,11 @@
 ﻿#include "AppLayer.h"
 
-AppLayer::AppLayer()
-{
+#include "Core/Application.h"
 
-}
+#include "raylib.h"
+#include "raygui.h"
 
-AppLayer::~AppLayer()
-{
-
-}
+#include "UI/Theme.h"
 
 void AppLayer::OnEvent(Event &event)
 {
@@ -23,4 +20,30 @@ void AppLayer::OnUpdate(float ts)
 void AppLayer::OnRender()
 {
     Layer::OnRender();
+
+    const float screenW = static_cast<float>(GetScreenWidth());
+    const float screenH = static_cast<float>(GetScreenHeight());
+
+    RenderBackground();
+}
+
+void AppLayer::RenderBackground()
+{
+    DrawRectangle(0, 0, 300, GetScreenHeight(), RizzList::Theme::BG_Sidebar);
+
+    DrawRectangleRounded({330, 20, 1560, 70},
+        .8f, 10,
+        RizzList::Theme::Border_Panel
+        );
+
+    DrawText(
+        Core::Application::Get().GetName().c_str(),
+        20, 20, 50,
+        RizzList::Theme::Text_Light
+        );
+}
+
+void AppLayer::RenderNavigationBar()
+{
+
 }

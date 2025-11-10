@@ -43,6 +43,9 @@ namespace Core {
         bool m_Running = false;
 
         std::vector<std::unique_ptr<Layer>> m_LayerStack;
+
+    public:
+        [[nodiscard]] const std::string& GetName() const { return m_Specification.Name; }
     };
 }
 
