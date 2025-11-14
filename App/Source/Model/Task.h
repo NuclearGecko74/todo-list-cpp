@@ -36,9 +36,10 @@ public:
     [[nodiscard]] inline std::string getTitle() const { return m_title; }
     [[nodiscard]] inline std::string getDescription() const { return m_description; }
     [[nodiscard]] inline bool getStatus() const { return m_statusComplete; } // false = in progress, true = completed
-    [[nodiscard]] inline bool getStatusDelete() const { return m_isDeleted; }
-    [[nodiscard]] inline std::chrono::system_clock::time_point getIsDeleted() const { return m_createDate; }
-    [[nodiscard]] std::string getDueDate() const;
+    [[nodiscard]] inline bool getIsDeleted() const { return m_isDeleted; }
+    [[nodiscard]] inline std::chrono::system_clock::time_point getCreateDate() const { return m_createDate; }
+    [[nodiscard]] std::tm getDueDate() const;
+    [[nodiscard]] std::string showDueDate() const;
 };
 
 // Operators

@@ -49,12 +49,13 @@ public:
     [[nodiscard]] inline std::string getDescription() const { return m_description; }
     [[nodiscard]] inline size_t getSize() const { return m_List.size(); }
     [[nodiscard]] std::string getCreateDate() const;
+    [[nodiscard]] std::optional<TaskSpecification> getTaskSpecification(const int id) const;
 
     // methods
     void addTask(const TaskSpecification& taskSpecification);
     void deleteTask(const int id);
     void editTask(const TaskSpecification& newTaskSpecification);
-    void show();
+    void show() const;
 };
 
 #endif

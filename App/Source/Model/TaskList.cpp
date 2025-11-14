@@ -22,6 +22,26 @@ std::string TaskList::getCreateDate() const
     return date_time_str;
 }
 
+std::optional<TaskSpecification> TaskList::getTaskSpecification(const int id) const
+{
+    auto iterator = std::ranges::find(m_List, id, &Task::getId);
+
+    if (iterator != m_List.end())
+    {
+        TaskSpecification taskSpecification;
+
+        taskSpecification.Id = iterator->getId();
+        taskSpecification.Title = iterator->getTitle();
+        taskSpecification.Description = iterator->getDescription();
+        taskSpecification.Status = iterator->getStatus();
+        taskSpecification.DueDate = iterator->getDueDate();
+
+        return taskSpecification;
+    }
+
+    return std::nullopt;
+}
+
 void TaskList::addTask(const TaskSpecification& taskSpecification)
 {
     Task newTask(taskSpecification.Id, taskSpecification.Title, taskSpecification.Description);
@@ -63,10 +83,10 @@ void TaskList::editTask(const TaskSpecification& newTaskSpecification)
     }
 }
 
-void TaskList::show()
+void TaskList::show() const
 {
     for (const auto& task : m_List)
     {
-        std::cout << task << "\n";
+        if (!task.getIsDeleted()) { std::cout << task << "\n"; }
     }
 }
