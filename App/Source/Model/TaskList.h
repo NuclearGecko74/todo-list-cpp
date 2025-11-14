@@ -7,10 +7,13 @@
 
 struct TaskSpecification{
     int Id = -1;
-    std::string Name = "Unnamed Task";
+    std::string Title = "Unnamed Task";
     std::string Description;
     bool Status = false;
-    std::tm DueDate;
+    std::tm DueDate = {0,0,0,0,0,0};
+
+    bool operator==(const TaskSpecification& other) const { return Id == other.Id; }
+    bool operator!=(const TaskSpecification& other) const { return !(*this == other); }
 };
 
 class TaskList {
@@ -50,6 +53,8 @@ public:
     // methods
     void addTask(const TaskSpecification& taskSpecification);
     void deleteTask(const int id);
+    void editTask(const TaskSpecification& newTaskSpecification);
+    void show();
 };
 
 #endif

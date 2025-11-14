@@ -24,7 +24,7 @@ std::string TaskList::getCreateDate() const
 
 void TaskList::addTask(const TaskSpecification& taskSpecification)
 {
-    Task newTask(taskSpecification.Id, taskSpecification.Name, taskSpecification.Description);
+    Task newTask(taskSpecification.Id, taskSpecification.Title, taskSpecification.Description);
 
     newTask.setStatus(taskSpecification.Status);
     newTask.setDueDate(taskSpecification.DueDate);
@@ -34,14 +34,39 @@ void TaskList::addTask(const TaskSpecification& taskSpecification)
 
 void TaskList::deleteTask(const int id)
 {
-    auto refTaskDeleted = std::ranges::find(m_List, id, &Task::getId);
+    auto iterator = std::ranges::find(m_List, id, &Task::getId);
 
-    if (refTaskDeleted != m_List.end())
+    if (iterator != m_List.end())
     {
-        refTaskDeleted->setIsDeleted(true);
+        iterator->setIsDeleted(true);
     }
     else
     {
         std::cout << "Task not found\n";
+    }
+}
+
+void TaskList::editTask(const TaskSpecification& newTaskSpecification)
+{
+    auto iterator = std::ranges::find(m_List, newTaskSpecification.Id, &Task::getId);
+
+    if (iterator != m_List.end())
+    {
+        iterator->setTitle(newTaskSpecification.Title);
+        iterator->setDescription(newTaskSpecification.Description);
+        iterator->setStatus(newTaskSpecification.Status);
+        iterator->setDueDate(newTaskSpecification.DueDate);
+    }
+    else
+    {
+        std::cout << "Task not found\n";
+    }
+}
+
+void TaskList::show()
+{
+    for (const auto& task : m_List)
+    {
+        std::cout << task << "\n";
     }
 }

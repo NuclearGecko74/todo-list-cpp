@@ -17,7 +17,7 @@ private:
 
 public:
     explicit Task(const int taskId,std::string  title = "", const std::string&  description = "")
-        : m_id(taskId), m_title(std::move(title)), m_description(std::move(description)),
+        : m_id(taskId), m_title(std::move(title)), m_description((description)),
         m_statusComplete(false), m_isDeleted(false)
     {
         m_createDate = std::chrono::system_clock::now();
@@ -40,6 +40,9 @@ public:
     [[nodiscard]] inline std::chrono::system_clock::time_point getIsDeleted() const { return m_createDate; }
     [[nodiscard]] std::string getDueDate() const;
 };
+
+// Operators
+std::ostream& operator<<(std::ostream& output, const Task& task);
 
 
 #endif

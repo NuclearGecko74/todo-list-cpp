@@ -20,3 +20,9 @@ std::string Task::getDueDate() const
 
     return buffer;
 }
+
+std::ostream& operator<<(std::ostream& output, const Task& task)
+{
+    output << "Task [" << task.getId() << "]: " << task.getTitle();
+    return output;
+}
