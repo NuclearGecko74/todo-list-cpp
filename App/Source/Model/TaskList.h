@@ -25,6 +25,9 @@ private:
     std::chrono::system_clock::time_point m_createDate;
     int m_userId;
 
+    // Auxiliary Methods
+    std::string toLower(std::string text);
+
 public:
     // constructors
     TaskList() = delete;
@@ -56,6 +59,7 @@ public:
     void deleteTask(const int id);
     void editTask(const TaskSpecification& newTaskSpecification);
     void show() const;
+    std::vector<TaskSpecification> search(const std::string& searchTerm);
 };
 
 #endif

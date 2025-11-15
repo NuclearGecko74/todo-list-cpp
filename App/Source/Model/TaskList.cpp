@@ -1,5 +1,15 @@
 ﻿#include "TaskList.h"
 
+std::string TaskList::toLower(std::string text)
+{
+    for (auto& character : text)
+    {
+        character = std::tolower(static_cast<unsigned char>(character));
+    }
+
+    return text;
+}
+
 TaskList::TaskList(const int id, const std::string& name, const Task& task, const int userId)
     : m_id(id), m_name(name), m_userId(userId)
 {
@@ -89,4 +99,36 @@ void TaskList::show() const
     {
         if (!task.getIsDeleted()) { std::cout << task << "\n"; }
     }
+}
+
+std::vector<TaskSpecification> TaskList::search(const std::string& searchTerm)
+{
+    std::vector<TaskSpecification> searchResults{};
+    std::string lowerSearchTerm = toLower(searchTerm);
+
+    if (lowerSearchTerm.empty())
+    {
+        return searchResults;
+    }
+
+    for (const Task& task : m_List)
+    {
+        std::string toLowerTitle = toLower(task.getTitle());
+        std::string toLowerDescription = toLower(task.getDescription());
+
+        if (toLowerTitle.find(searchTerm) != std::string::npos ||
+            toLowerDescription.find(searchTerm) != std::string::npos)
+        {
+            TaskSpecification taskFound;
+            taskFound.Id = task.getId();
+            taskFound.Title = task.getTitle();
+            taskFound.Description = task.getDescription();
+            taskFound.DueDate = task.getDueDate();
+            taskFound.Status = task.getStatus();
+
+            searchResults.push_back(taskFound);
+        }
+    }
+
+    return searchResults;
 }
