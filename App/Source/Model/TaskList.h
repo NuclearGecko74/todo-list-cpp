@@ -1,19 +1,16 @@
 ﻿#ifndef TODOLIST_TASKLIST_H
 #define TODOLIST_TASKLIST_H
 
-#include <iostream>
 #include <vector>
 #include "Task.h"
 
-struct TaskSpecification{
+struct TaskListSpecification
+{
     int Id = -1;
-    std::string Title = "Unnamed Task";
+    std::string Name = "Untitled List";
     std::string Description;
-    bool Status = false;
-    std::tm DueDate = {0,0,0,0,0,0};
-
-    bool operator==(const TaskSpecification& other) const { return Id == other.Id; }
-    bool operator!=(const TaskSpecification& other) const { return !(*this == other); }
+    std::chrono::system_clock::time_point CreateDate = std::chrono::system_clock::now();
+    int UserId = -1;
 };
 
 class TaskList {
@@ -25,33 +22,32 @@ private:
     std::chrono::system_clock::time_point m_createDate;
     int m_userId;
 
-    // Auxiliary Methods
-    std::string toLower(std::string text);
-
 public:
     // constructors
-    TaskList() = delete;
+    explicit TaskList(const TaskListSpecification& specification)
+        : m_id(specification.Id), m_name(specification.Name), m_description(specification.Description),
+        m_createDate(specification.CreateDate), m_userId(specification.UserId) {}
 
-    explicit TaskList(const int id, const std::string& name, const int userId)
-        : m_id(id), m_name(name), m_userId(userId) {};
-
-    explicit TaskList(const int id, const std::string& name, const std::string& description, const int userId)
-        :  m_id(id), m_name(name), m_description(description), m_userId(userId) {};
-
-    explicit TaskList(const int id, const std::string& name, const Task& task, const int userId);
-
-    explicit TaskList(const int id, const std::string& name, const std::string& description, const Task& task, const int userId);
+    explicit TaskList(const TaskListSpecification& specification, const Task& task)
+        : m_id(specification.Id), m_name(specification.Name), m_description(specification.Description),
+        m_createDate(specification.CreateDate), m_userId(specification.UserId)
+    {
+        m_List.emplace_back(task);
+    }
 
     // setters
     inline void setId (const int newId) { m_id = newId; };
     inline void setName(const std::string& newName) { m_name = newName; }
     inline void setDescription(const std::string& newDescription) { m_description = newDescription; }
+    inline void setUserId(const int newUserId) { m_userId = newUserId; }
 
     // getters
+    [[nodiscard]] inline int getId() const { return m_id; }
     [[nodiscard]] inline std::string getName() const { return m_name; }
     [[nodiscard]] inline std::string getDescription() const { return m_description; }
     [[nodiscard]] inline size_t getSize() const { return m_List.size(); }
-    [[nodiscard]] std::string getCreateDate() const;
+    [[nodiscard]] inline std::chrono::system_clock::time_point getCreateDate() const { return m_createDate; }
+    [[nodiscard]] inline int getUserId() const { return m_userId; }
     [[nodiscard]] std::optional<TaskSpecification> getTaskSpecification(const int id) const;
 
     // methods
@@ -59,7 +55,7 @@ public:
     void deleteTask(const int id);
     void editTask(const TaskSpecification& newTaskSpecification);
     void show() const;
-    std::vector<TaskSpecification> search(const std::string& searchTerm);
+    std::vector<TaskSpecification> search(const std::string& searchTerm) const;
 };
 
 #endif

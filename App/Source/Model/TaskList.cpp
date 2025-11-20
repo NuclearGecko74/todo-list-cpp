@@ -1,36 +1,7 @@
 ﻿#include "TaskList.h"
+#include "Utilities.h"
 
-std::string TaskList::toLower(std::string text)
-{
-    for (auto& character : text)
-    {
-        character = std::tolower(static_cast<unsigned char>(character));
-    }
-
-    return text;
-}
-
-TaskList::TaskList(const int id, const std::string& name, const Task& task, const int userId)
-    : m_id(id), m_name(name), m_userId(userId)
-{
-    m_List.emplace_back(task);
-}
-
-TaskList::TaskList(const int id, const std::string& name, const std::string& description, const Task& task, const int userId)
-    : m_id(id), m_name(name), m_description(description), m_userId(userId)
-{
-    m_List.emplace_back(task);
-}
-
-std::string TaskList::getCreateDate() const
-{
-    // Get the current calendar time as a time_t object
-    const std::time_t now = std::time(nullptr);
-
-    // Convert the time_t object to a human-readable string
-    const char* date_time_str = std::ctime(&now);
-    return date_time_str;
-}
+#include <iostream>
 
 std::optional<TaskSpecification> TaskList::getTaskSpecification(const int id) const
 {
@@ -54,11 +25,7 @@ std::optional<TaskSpecification> TaskList::getTaskSpecification(const int id) co
 
 void TaskList::addTask(const TaskSpecification& taskSpecification)
 {
-    Task newTask(taskSpecification.Id, taskSpecification.Title, taskSpecification.Description);
-
-    newTask.setStatus(taskSpecification.Status);
-    newTask.setDueDate(taskSpecification.DueDate);
-
+    Task newTask(taskSpecification);
     m_List.emplace_back(newTask);
 }
 
@@ -101,10 +68,10 @@ void TaskList::show() const
     }
 }
 
-std::vector<TaskSpecification> TaskList::search(const std::string& searchTerm)
+std::vector<TaskSpecification> TaskList::search(const std::string& searchTerm) const
 {
     std::vector<TaskSpecification> searchResults{};
-    std::string lowerSearchTerm = toLower(searchTerm);
+    std::string lowerSearchTerm = TaskUtilities::toLower(searchTerm);
 
     if (lowerSearchTerm.empty())
     {
@@ -113,8 +80,8 @@ std::vector<TaskSpecification> TaskList::search(const std::string& searchTerm)
 
     for (const Task& task : m_List)
     {
-        std::string toLowerTitle = toLower(task.getTitle());
-        std::string toLowerDescription = toLower(task.getDescription());
+        std::string toLowerTitle = TaskUtilities::toLower(task.getTitle());
+        std::string toLowerDescription = TaskUtilities::toLower(task.getDescription());
 
         if (toLowerTitle.find(searchTerm) != std::string::npos ||
             toLowerDescription.find(searchTerm) != std::string::npos)

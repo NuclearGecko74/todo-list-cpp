@@ -14,6 +14,8 @@ set(SOURCES
         Source/Model/Task.h
         Source/Model/TaskList.cpp
         Source/Model/TaskList.h
+        Source/Model/Utilities.cpp
+        Source/Model/Utilities.h
 )
 
 add_executable(App)
