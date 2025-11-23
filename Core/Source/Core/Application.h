@@ -9,7 +9,7 @@
 #include <string>
 #include <memory>
 #include <vector>
-#include <set>
+#include <functional>
 
 namespace Core {
     struct ApplicationSpecification {
@@ -33,19 +33,23 @@ namespace Core {
         }
 
         Vector2 GetFramebufferSize() const;
-
         static Application& Get();
-
         static float GetAppTime();
+
+        void SubmitPostFrameAction(std::function<void()> action);
+
     private:
         ApplicationSpecification m_Specification;
         std::shared_ptr<Window> m_Window;
         bool m_Running = false;
 
         std::vector<std::unique_ptr<Layer>> m_LayerStack;
+        std::vector<std::function<void()>> m_PostFrameQueue;
+
+        friend class Layer;
 
     public:
-        [[nodiscard]] const std::string& GetName() const { return m_Specification.Name; }
+        const std::string& GetName() const { return m_Specification.Name; }
     };
 }
 
