@@ -29,17 +29,17 @@ void AppLayer::OnRender()
 
 void AppLayer::RenderBackground()
 {
-    DrawRectangle(0, 0, 300, GetScreenHeight(), RizzList::Theme::BG_Sidebar);
+    DrawRectangle(0, 0, 300, GetScreenHeight(),Theme::BG_Sidebar);
 
     DrawRectangleRounded({330, 20, 1560, 70},
         .8f, 10,
-        RizzList::Theme::Border_Panel
+        Theme::Border_Panel
         );
 
     DrawText(
         Core::Application::Get().GetName().c_str(),
         20, 20, 50,
-        RizzList::Theme::Text_Light
+        Theme::Text_Light
         );
 }
 
