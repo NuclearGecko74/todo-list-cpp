@@ -42,7 +42,7 @@ namespace Core {
 
             BeginDrawing();
             {
-                ClearBackground({200, 179, 255});
+                ClearBackground(LIGHTGRAY);
 
                 for (const std::unique_ptr<Layer>& layer : m_LayerStack)
                     layer->OnRender();

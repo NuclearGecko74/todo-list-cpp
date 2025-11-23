@@ -21,14 +21,15 @@ void AppLayer::OnRender()
 {
     Layer::OnRender();
 
-    const float screenW = static_cast<float>(GetScreenWidth());
-    const float screenH = static_cast<float>(GetScreenHeight());
+    const auto screenW = static_cast<float>(GetScreenWidth());
+    const auto screenH = static_cast<float>(GetScreenHeight());
 
     RenderBackground();
 }
 
 void AppLayer::RenderBackground()
 {
+    ClearBackground(Theme::BG_Main);
     DrawRectangle(0, 0, 300, GetScreenHeight(),Theme::BG_Sidebar);
 
     DrawRectangleRounded({330, 20, 1560, 70},
