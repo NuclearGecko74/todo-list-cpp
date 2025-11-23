@@ -13,6 +13,7 @@ namespace Core {
         bool IsResizeable = true;
         bool VSync = true;
         std::string IconPath;
+        bool StartMaximized = true;
     };
 
     class Window {
