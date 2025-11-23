@@ -7,6 +7,8 @@ set(SOURCES
 
         Source/UI/AppLayer.cpp
         Source/UI/AppLayer.h
+        Source/UI/AuthLayer.cpp
+        Source/UI/AuthLayer.h
         Source/UI/DebugLayer.cpp
         Source/UI/DebugLayer.h
 
