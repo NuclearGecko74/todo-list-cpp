@@ -3,6 +3,7 @@
 
 #include <vector>
 #include "Task.h"
+#include "TaskManager.h"
 
 struct TaskListSpecification
 {
@@ -23,20 +24,16 @@ private:
     bool m_isDeleted;
     std::chrono::system_clock::time_point m_createDate;
     int m_userId;
+    TaskManager& m_taskManager;
 
 public:
     // constructors
-    explicit TaskList(const TaskListSpecification& specification)
+    explicit TaskList(const TaskListSpecification& specification, TaskManager& taskManager)
         : m_id(specification.Id), m_name(specification.Name), m_description(specification.Description),
         m_isDeleted(specification.IsDeleted), m_createDate(specification.CreateDate),
-        m_userId(specification.UserId) {}
-
-    explicit TaskList(const TaskListSpecification& specification, const Task& task)
-        : m_id(specification.Id), m_name(specification.Name), m_description(specification.Description),
-        m_isDeleted(specification.IsDeleted), m_createDate(specification.CreateDate),
-        m_userId(specification.UserId)
+        m_userId(specification.UserId), m_taskManager(taskManager)
     {
-        m_list.emplace_back(task);
+        m_list = m_taskManager.loadTasks(m_id);
     }
 
     // setters
