@@ -6,12 +6,9 @@
 
 class DebugLayer : public BaseLayer {
 public:
-    DebugLayer();
+    DebugLayer() = default;
+    ~DebugLayer() override = default;
 
-    ~DebugLayer() override;
-
-    virtual void OnEvent(Event& event) override;
-    virtual void OnUpdate(float ts) override;
     virtual void OnRender() override;
 };
 
