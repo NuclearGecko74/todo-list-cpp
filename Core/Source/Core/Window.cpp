@@ -17,6 +17,9 @@ namespace Core {
 
         InitWindow(m_Specification.Width, m_Specification.Height, m_Specification.Title.c_str());
 
+        if (m_Specification.StartMaximized)
+            MaximizeWindow();
+
         SetTargetFPS(60);
 
         if (!m_Specification.IconPath.empty())

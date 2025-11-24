@@ -7,6 +7,7 @@ set(SOURCES
         Source/Core/Application.h
         Source/Core/Window.cpp
         Source/Core/Window.h
+        Source/Core/Layer.cpp
         Source/Core/Layer.h
         Source/Core/Event.h
     )

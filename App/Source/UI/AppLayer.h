@@ -1,19 +1,30 @@
 ﻿#ifndef TODOLIST_APPLAYER_H
 #define TODOLIST_APPLAYER_H
 
+#include "BaseLayer.h"
 #include "Core/Layer.h"
-#include <string>
-#include <vector>
-#include <utility>
 
-class AppLayer : public Core::Layer {
+class AppLayer : public BaseLayer {
+private:
+    enum class AppScreen {
+        Tasks,
+        Settings,
+        Calendar
+    };
 public:
-    AppLayer();
-    virtual ~AppLayer();
+    AppLayer() = default;
+    ~AppLayer() override = default;
 
-    virtual void OnEvent(Event& event) override;
-    virtual void OnUpdate(float ts) override;
-    virtual void OnRender() override;
+    void OnEvent(Event& event) override;
+    void OnUpdate(float ts) override;
+    void OnRender() override;
+
+private:
+    void RenderBackground();
+    void RenderNavigationBar();
+
+private:
+    AppScreen m_CurrentScreen = AppScreen::Tasks;
 };
 
 
