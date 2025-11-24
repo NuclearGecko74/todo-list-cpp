@@ -1,18 +1,18 @@
 #include "ListManager.h"
 #include "Utilities.h"
-#include "../../../cmake-build-release/_deps/sqlitecpp-src/include/SQLiteCpp/VariadicBind.h"
+#include "SQLiteCpp/SQLiteCpp.h"
 
 std::optional<int> ListManager::createList(const TaskListSpecification& specification)
 {
     SQLite::Statement query(m_Db,
-        "INSERT into list (name, description, createDate, userId, isDeleted) VALUES(?,?,DATETIME('now'),?, ?)" );
+        "INSERT into list (name, description, createDate, userId, isDeleted) VALUES(?,?,DATETIME('now'),?,?)" );
 
     query.bind(1, specification.Name);
     query.bind(2, specification.Description);
     query.bind(3, specification.UserId);
     query.bind(4, specification.IsDeleted);
 
-    if (query.executeStep()) { return static_cast<int>(m_Db.getLastInsertRowid()); }
+    if (query.exec()) { return static_cast<int>(m_Db.getLastInsertRowid()); }
 
     return std::nullopt;
 }
@@ -21,7 +21,7 @@ std::vector<TaskListSpecification> ListManager::loadLists(const int userId)
 {
     std::vector<TaskListSpecification> userLists;
     SQLite::Statement query(m_Db,
-        "SELECT listId, name, description, createDate FROM list WHERE userId = ?" );
+        "SELECT listId, name, description, createDate FROM list WHERE userId = ? AND isDeleted = 0" );
 
     query.bind(1, userId);
 
@@ -44,7 +44,7 @@ std::vector<TaskListSpecification> ListManager::loadLists(const int userId)
 std::optional<TaskListSpecification> ListManager::getList(const int listId)
 {
     SQLite::Statement query(m_Db,
-        "SELECT listId, name, description, createDate, userID FROM list WHERE listId = ?" );
+        "SELECT listId, name, description, createDate, userID FROM list WHERE listId = ? AND isDeleted = 0" );
 
     query.bind(1, listId);
 
@@ -64,7 +64,7 @@ std::optional<TaskListSpecification> ListManager::getList(const int listId)
     return std::nullopt;
 }
 
-bool ListManager::updateList(const TaskListSpecification &specification, const int listId)
+bool ListManager::updateList(const TaskListSpecification &specification)
 {
     try
     {
@@ -73,7 +73,7 @@ bool ListManager::updateList(const TaskListSpecification &specification, const i
 
         query.bind(1, specification.Name);
         query.bind(2, specification.Description);
-        query.bind(3, listId);
+        query.bind(3, specification.Id);
 
         query.executeStep();
         return true;

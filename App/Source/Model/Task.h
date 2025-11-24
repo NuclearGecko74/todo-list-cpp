@@ -12,6 +12,7 @@ struct TaskSpecification {
     bool isDeleted = false;
     std::chrono::system_clock::time_point DueDate;
     std::chrono::system_clock::time_point CreateDate = std::chrono::system_clock::now();
+    int  ListId = -1;
 
     // Operators
     bool operator==(const TaskSpecification& other) const { return Id == other.Id; }

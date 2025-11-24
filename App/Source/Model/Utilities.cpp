@@ -16,6 +16,20 @@ namespace TaskUtilities
         return formatter.str();
     }
 
+    std::string timePointToString(const std::chrono::system_clock::time_point &timePoint)
+    {
+        const std::time_t rawTime = std::chrono::system_clock::to_time_t(timePoint);
+
+        std::tm calendarDate{};
+        std::stringstream formatter;
+        if (localtime_s(&calendarDate, &rawTime) == 0)
+        {
+            // SQL date format
+            formatter << std::put_time(&calendarDate, "%Y-%m-%d %H:%M:%S");
+        }
+        return formatter.str();
+    }
+
     std::string toLower(std::string text)
     {
         for (auto& character : text)

@@ -20,7 +20,7 @@ public:
 
     std::optional<TaskListSpecification> getList(const int listId);
 
-    bool updateList(const TaskListSpecification& specification, const int listId);
+    bool updateList(const TaskListSpecification& specification);
 
     bool deleteList(const int listId);
 };
