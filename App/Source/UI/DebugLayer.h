@@ -1,9 +1,10 @@
 ﻿#ifndef TODOLIST_DEBUGLAYER_H
 #define TODOLIST_DEBUGLAYER_H
 
+#include "BaseLayer.h"
 #include "Core/Layer.h"
 
-class DebugLayer : public Core::Layer {
+class DebugLayer : public BaseLayer {
 public:
     DebugLayer();
 

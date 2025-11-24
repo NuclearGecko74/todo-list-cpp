@@ -1,9 +1,10 @@
 ﻿#ifndef TODOLIST_APPLAYER_H
 #define TODOLIST_APPLAYER_H
 
+#include "BaseLayer.h"
 #include "Core/Layer.h"
 
-class AppLayer : public Core::Layer {
+class AppLayer : public BaseLayer {
 private:
     enum class AppScreen {
         Tasks,

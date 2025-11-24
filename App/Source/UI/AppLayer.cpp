@@ -37,7 +37,7 @@ void AppLayer::RenderBackground()
         Theme::Border_Panel
         );
 
-    DrawText(
+    DrawLabel(
         Core::Application::Get().GetName().c_str(),
         20, 20, 50,
         Theme::Text_Light

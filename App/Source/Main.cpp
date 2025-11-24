@@ -1,7 +1,8 @@
-﻿#include "Core/Application.h"
-#include "UI/AppLayer.h"
+﻿#define RAYGUI_IMPLEMENTATION
 
-#define RAYGUI_IMPLEMENTATION
+#include "AppResources.h"
+#include "Core/Application.h"
+#include "UI/AppLayer.h"
 
 #ifndef NDEBUG
     #include "UI/DebugLayer.h"
@@ -15,6 +16,8 @@ int main()
 
     Core::Application application(appSpec);
 
+    AppResources::Init();
+
     application.PushLayer<AppLayer>();
 
 #ifndef NDEBUG
@@ -22,4 +25,6 @@ int main()
 #endif
 
     application.Run();
+
+    AppResources::Shutdown();
 }

@@ -4,6 +4,8 @@
 
 set(SOURCES
         Source/Main.cpp
+        Source/AppResources.cpp
+        Source/AppResources.h
 
         Source/UI/AppLayer.cpp
         Source/UI/AppLayer.h

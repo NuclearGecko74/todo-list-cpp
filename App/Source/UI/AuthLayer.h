@@ -1,9 +1,10 @@
 #ifndef AUTHLAYER_H
 #define AUTHLAYER_H
+#include "BaseLayer.h"
 #include "Core/Layer.h"
 
 
-class AuthLayer : Core::Layer {
+class AuthLayer : BaseLayer {
 public:
     AuthLayer() = default;
     ~AuthLayer() override = default;
