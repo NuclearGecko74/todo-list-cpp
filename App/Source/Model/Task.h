@@ -13,8 +13,10 @@ struct TaskSpecification {
     std::chrono::system_clock::time_point DueDate;
     std::chrono::system_clock::time_point CreateDate = std::chrono::system_clock::now();
 
+    // Operators
     bool operator==(const TaskSpecification& other) const { return Id == other.Id; }
     bool operator!=(const TaskSpecification& other) const { return !(*this == other); }
+    friend std::ostream& operator<<(std::ostream& output, const TaskSpecification& specification);
 };
 
 class Task {

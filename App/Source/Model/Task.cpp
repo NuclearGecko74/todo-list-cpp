@@ -9,3 +9,10 @@ std::ostream& operator<<(std::ostream& output, const Task& task)
     << TaskUtilities::formatDate(task.getDueDate());
     return output;
 }
+
+std::ostream& operator<<(std::ostream& output, const TaskSpecification& specification)
+{
+    output << "Task [" << specification.Id << "]: " << specification.Title << ", "
+    << TaskUtilities::formatDate(specification.DueDate) << ", " << specification.Status;
+    return output;
+}

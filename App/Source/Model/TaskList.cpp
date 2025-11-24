@@ -5,9 +5,9 @@
 
 std::optional<TaskSpecification> TaskList::getTaskSpecification(const int id) const
 {
-    auto iterator = std::ranges::find(m_List, id, &Task::getId);
+    auto iterator = std::ranges::find(m_list, id, &Task::getId);
 
-    if (iterator != m_List.end())
+    if (iterator != m_list.end())
     {
         TaskSpecification taskSpecification;
 
@@ -26,14 +26,14 @@ std::optional<TaskSpecification> TaskList::getTaskSpecification(const int id) co
 void TaskList::addTask(const TaskSpecification& taskSpecification)
 {
     Task newTask(taskSpecification);
-    m_List.emplace_back(newTask);
+    m_list.emplace_back(newTask);
 }
 
 void TaskList::deleteTask(const int id)
 {
-    auto iterator = std::ranges::find(m_List, id, &Task::getId);
+    auto iterator = std::ranges::find(m_list, id, &Task::getId);
 
-    if (iterator != m_List.end())
+    if (iterator != m_list.end())
     {
         iterator->setIsDeleted(true);
     }
@@ -45,9 +45,9 @@ void TaskList::deleteTask(const int id)
 
 void TaskList::editTask(const TaskSpecification& newTaskSpecification)
 {
-    auto iterator = std::ranges::find(m_List, newTaskSpecification.Id, &Task::getId);
+    auto iterator = std::ranges::find(m_list, newTaskSpecification.Id, &Task::getId);
 
-    if (iterator != m_List.end())
+    if (iterator != m_list.end())
     {
         iterator->setTitle(newTaskSpecification.Title);
         iterator->setDescription(newTaskSpecification.Description);
@@ -62,7 +62,7 @@ void TaskList::editTask(const TaskSpecification& newTaskSpecification)
 
 void TaskList::show() const
 {
-    for (const auto& task : m_List)
+    for (const auto& task : m_list)
     {
         if (!task.getIsDeleted()) { std::cout << task << "\n"; }
     }
@@ -78,7 +78,7 @@ std::vector<TaskSpecification> TaskList::search(const std::string& searchTerm) c
         return searchResults;
     }
 
-    for (const Task& task : m_List)
+    for (const Task& task : m_list)
     {
         std::string toLowerTitle = TaskUtilities::toLower(task.getTitle());
         std::string toLowerDescription = TaskUtilities::toLower(task.getDescription());
@@ -98,4 +98,9 @@ std::vector<TaskSpecification> TaskList::search(const std::string& searchTerm) c
     }
 
     return searchResults;
+}
+
+void TaskList::deleteList()
+{
+    m_isDeleted = true;
 }

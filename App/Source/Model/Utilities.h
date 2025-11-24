@@ -11,9 +11,11 @@
 namespace TaskUtilities
 {
     // Returns date and time using ctime
-    std::string formatDate(const std::chrono::system_clock::time_point& time_point);
+    std::string formatDate(const std::chrono::system_clock::time_point& timePoint);
 
     std::string toLower(std::string text);
+
+    std::chrono::system_clock::time_point stringToTimePoint(const std::string& dateString);
 }
 
 #endif //TODOLIST_UTILITIES_H
