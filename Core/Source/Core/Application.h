@@ -50,6 +50,8 @@ namespace Core {
 
         void SubmitPostFrameAction(std::function<void()> action);
 
+        std::vector<std::unique_ptr<Layer>>& GetLayerStack() { return m_LayerStack; }
+
     private:
         ApplicationSpecification m_Specification;
         std::shared_ptr<Window> m_Window;

@@ -2,7 +2,7 @@
 
 #include "AppResources.h"
 #include "Core/Application.h"
-#include "UI/AppLayer.h"
+#include "UI/AuthLayer.h"
 
 #ifndef NDEBUG
     #include "UI/DebugLayer.h"
@@ -18,7 +18,7 @@ int main()
 
     AppResources::Init();
 
-    application.PushLayer<AppLayer>();
+    application.PushLayer<AuthLayer>();
 
 #ifndef NDEBUG
     application.PushLayer<DebugLayer>();
