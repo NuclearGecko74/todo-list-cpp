@@ -26,7 +26,7 @@ std::optional<TaskSpecification> TaskList::getTaskSpecification(const int id) co
 void TaskList::addTask(const TaskSpecification& taskSpecification)
 {
     Task newTask(taskSpecification);
-    newTask.setId(m_taskManager.createTask(taskSpecification).value());
+    newTask.setId(m_taskManager->createTask(taskSpecification).value());
     m_list.emplace_back(newTask);
 }
 
@@ -36,7 +36,7 @@ void TaskList::deleteTask(const int id) {
     if (iterator != m_list.end())
     {
         iterator->setIsDeleted(true);
-        m_taskManager.deleteTask(id);
+        m_taskManager->deleteTask(id);
     }
     else
     {
@@ -54,7 +54,7 @@ void TaskList::editTask(const TaskSpecification& newTaskSpecification)
         iterator->setDescription(newTaskSpecification.Description);
         iterator->setStatus(newTaskSpecification.Status);
         iterator->setDueDate(newTaskSpecification.DueDate);
-        m_taskManager.updateTask(newTaskSpecification);
+        m_taskManager->updateTask(newTaskSpecification);
     }
     else
     {
