@@ -6,13 +6,16 @@
 
 #include "TaskList.h"
 
+#include <optional>
+#include <vector>
+
 class ListManager
 {
 private:
-    SQLite::Database& m_Db;
+    SQLite::Database& m_db;
 
 public:
-    explicit ListManager(SQLite::Database& database) : m_Db(database) {}
+    explicit ListManager(SQLite::Database& database) : m_db(database) {}
 
     std::optional<int> createList(const TaskListSpecification& specification);
 

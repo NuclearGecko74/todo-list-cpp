@@ -1,6 +1,8 @@
 #include "TaskManager.h"
 #include "Utilities.h"
 #include <SQLiteCpp/SQLiteCpp.h>
+#include <optional>
+#include <vector>
 
 std::optional<int> TaskManager::createTask(const TaskSpecification &specification)
 {
@@ -34,7 +36,8 @@ std::vector<Task> TaskManager::loadTasks(const int listId)
         taskFound.Description = query.getColumn(2).getString();
         taskFound.isDeleted = false;
         taskFound.Status = query.getColumn(3).getInt();
-        taskFound.DueDate = TaskUtilities::stringToTimePoint(query.getColumn(4).getString());
+        taskFound.CreateDate = TaskUtilities::stringToTimePoint(query.getColumn(4).getString());
+        taskFound.DueDate = TaskUtilities::stringToTimePoint(query.getColumn(5).getString());
         taskFound.ListId = listId;
 
         list.emplace_back(taskFound);

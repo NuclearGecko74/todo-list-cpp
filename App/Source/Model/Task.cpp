@@ -2,6 +2,7 @@
 #include "Utilities.h"
 
 #include <string>
+#include <iostream>
 
 std::ostream& operator<<(std::ostream& output, const Task& task)
 {

@@ -1,10 +1,13 @@
+#include <optional>
+#include <vector>
+
 #include "ListManager.h"
 #include "Utilities.h"
 #include "SQLiteCpp/SQLiteCpp.h"
 
 std::optional<int> ListManager::createList(const TaskListSpecification& specification)
 {
-    SQLite::Statement query(m_Db,
+    SQLite::Statement query(m_db,
         "INSERT into list (name, description, createDate, userId, isDeleted) VALUES(?,?,DATETIME('now'),?,?)" );
 
     query.bind(1, specification.Name);
@@ -12,7 +15,7 @@ std::optional<int> ListManager::createList(const TaskListSpecification& specific
     query.bind(3, specification.UserId);
     query.bind(4, specification.IsDeleted);
 
-    if (query.exec()) { return static_cast<int>(m_Db.getLastInsertRowid()); }
+    if (query.exec()) { return static_cast<int>(m_db.getLastInsertRowid()); }
 
     return std::nullopt;
 }
@@ -20,7 +23,7 @@ std::optional<int> ListManager::createList(const TaskListSpecification& specific
 std::vector<TaskListSpecification> ListManager::loadLists(const int userId)
 {
     std::vector<TaskListSpecification> userLists;
-    SQLite::Statement query(m_Db,
+    SQLite::Statement query(m_db,
         "SELECT listId, name, description, createDate FROM list WHERE userId = ? AND isDeleted = 0" );
 
     query.bind(1, userId);
@@ -43,8 +46,8 @@ std::vector<TaskListSpecification> ListManager::loadLists(const int userId)
 
 std::optional<TaskListSpecification> ListManager::getList(const int listId)
 {
-    SQLite::Statement query(m_Db,
-        "SELECT listId, name, description, createDate, userID FROM list WHERE listId = ? AND isDeleted = 0" );
+    SQLite::Statement query(m_db,
+        "SELECT listId, name, description, createDate, userId FROM list WHERE listId = ? AND isDeleted = 0" );
 
     query.bind(1, listId);
 
@@ -68,7 +71,7 @@ bool ListManager::updateList(const TaskListSpecification &specification)
 {
     try
     {
-        SQLite::Statement query(m_Db,
+        SQLite::Statement query(m_db,
            "UPDATE list SET name = ?, description = ? WHERE listId = ?");
 
         query.bind(1, specification.Name);
@@ -88,7 +91,7 @@ bool ListManager::deleteList(const int listId)
 {
     try
     {
-        SQLite::Statement query(m_Db,
+        SQLite::Statement query(m_db,
            "UPDATE list SET isDeleted = 1 WHERE listId = ?");
 
         query.bind(1, listId);

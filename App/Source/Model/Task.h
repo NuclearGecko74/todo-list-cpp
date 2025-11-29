@@ -42,7 +42,7 @@ public:
     inline void setDescription(const std::string& newDescription) { m_description = newDescription; }
     inline void setStatus(const bool newStatus) { m_statusComplete = newStatus; }
     inline void setIsDeleted(const bool newIsDeleted) { m_isDeleted = newIsDeleted; }
-    inline void setDueDate(std::chrono::system_clock::time_point newDueDate) { m_dueDate = newDueDate; }
+    inline void setDueDate(const std::chrono::system_clock::time_point newDueDate) { m_dueDate = newDueDate; }
 
     // Getters
     [[nodiscard]] inline int getId() const { return m_id; }

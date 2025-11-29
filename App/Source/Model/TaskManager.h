@@ -4,6 +4,9 @@
 #include "SQLiteCpp/SQLiteCpp.h"
 #include "Task.h"
 
+#include <optional>
+#include <vector>
+
 class TaskManager
 {
 private:

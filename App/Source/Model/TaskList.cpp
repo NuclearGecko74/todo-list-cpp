@@ -2,6 +2,9 @@
 #include "Utilities.h"
 
 #include <iostream>
+#include <ranges>
+#include <optional>
+#include <vector>
 
 std::optional<TaskSpecification> TaskList::getTaskSpecification(const int id) const
 {
@@ -26,8 +29,19 @@ std::optional<TaskSpecification> TaskList::getTaskSpecification(const int id) co
 void TaskList::addTask(const TaskSpecification& taskSpecification)
 {
     Task newTask(taskSpecification);
-    newTask.setId(m_taskManager->createTask(taskSpecification).value());
-    m_list.emplace_back(newTask);
+
+    // Saves the task into the database and storages the id of the new task
+    std::optional<int> newId = m_taskManager->createTask(taskSpecification).value();
+
+    if (newId.has_value())
+    {
+        newTask.setId(newId.value());
+        m_list.emplace_back(newTask);
+    }
+    else
+    {
+        std::cout << "Error saving task in database\n";
+    }
 }
 
 void TaskList::deleteTask(const int id) {
@@ -85,8 +99,8 @@ std::vector<TaskSpecification> TaskList::search(const std::string& searchTerm) c
         std::string toLowerTitle = TaskUtilities::toLower(task.getTitle());
         std::string toLowerDescription = TaskUtilities::toLower(task.getDescription());
 
-        if (toLowerTitle.find(searchTerm) != std::string::npos ||
-            toLowerDescription.find(searchTerm) != std::string::npos)
+        if (toLowerTitle.find(lowerSearchTerm) != std::string::npos ||
+            toLowerDescription.find(lowerSearchTerm) != std::string::npos)
         {
             TaskSpecification taskFound;
             taskFound.Id = task.getId();
