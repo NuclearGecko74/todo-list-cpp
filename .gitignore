@@ -679,4 +679,11 @@ FodyWeavers.xsd
 ### VisualStudio Patch ###
 # Additional files built by Visual Studio
 
+# Sqlite Files
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+
 # End of https://www.toptal.com/developers/gitignore/api/cmake,c++,c,vcpkg,visualstudio,visualstudiocode,rider,clion
