@@ -43,7 +43,7 @@ void AuthLayer::OnRender()
     Font font = AppResources::GetFont();
 
     DrawTextEx(font, "Sign in", { leftColumnX, startY }, 60, 0, Theme::BG_Sidebar);
-    
+
     float inputY = startY + 100.0f;
     if (GuiTextBox({ leftColumnX, inputY, 300, 40 }, m_UsernameBuffer, 128, m_EditUsername))
     {
