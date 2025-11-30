@@ -20,6 +20,15 @@ set(SOURCES
         Source/Model/TaskList.h
 
         Source/UI/Theme.h
+        Source/Model/AuthManager.cpp
+        Source/Model/AuthManager.h
+        
+        Source/Model/Utilities.cpp
+        Source/Model/Utilities.h
+        Source/Model/TaskManager.cpp
+        Source/Model/TaskManager.h
+        Source/Model/ListManager.cpp
+        Source/Model/ListManager.h
 )
 
 add_executable(App)

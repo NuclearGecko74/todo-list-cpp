@@ -5,6 +5,10 @@
 #include "Theme.h"
 #include "Core/Application.h"
 
+AuthLayer::AuthLayer()
+{
+}
+
 void AuthLayer::OnUpdate(float ts)
 {
     if (IsKeyPressed(KEY_ENTER))
@@ -15,71 +19,106 @@ void AuthLayer::OnUpdate(float ts)
 
 void AuthLayer::OnRender()
 {
-    float screenW = static_cast<float>(GetScreenWidth());
-    float screenH = static_cast<float>(GetScreenHeight());
+    const float kCardWidth = 800.0f;
+    const float kCardHeight = 500.0f;
 
-    float cardWidth = 800.0f;
-    float cardHeight = 500.0f;
+    float screenW = (float)GetScreenWidth();
+    float screenH = (float)GetScreenHeight();
 
-    float cardX = (screenW - cardWidth) / 2.0f;
-    float cardY = (screenH - cardHeight) / 2.0f;
-
-    Rectangle cardRect = { cardX, cardY, cardWidth, cardHeight };
+    // Center calculation
+    float cardX = (screenW - kCardWidth) / 2.0f;
+    float cardY = (screenH - kCardHeight) / 2.0f;
+    Rectangle cardRect = { cardX, cardY, kCardWidth, kCardHeight };
 
     ClearBackground(Theme::BG_Main);
 
-    float borderSize = 20.0f;
-    DrawRectangleRounded(
-        { cardX - borderSize, cardY - borderSize, cardWidth + borderSize * 2, cardHeight + borderSize * 2 },
-        0.05f, 10, Theme::BG_Sidebar
+    DrawCardBackground(cardRect);
+    DrawLoginForm(cardRect);
+}
+
+void AuthLayer::DrawCardBackground(Rectangle cardRect)
+{
+    const float borderSize = 20.0f;
+
+    // Draw Border (simulated by a larger rectangle behind)
+    Rectangle borderRect = {
+        cardRect.x - borderSize,
+        cardRect.y - borderSize,
+        cardRect.width + (borderSize * 2),
+        cardRect.height + (borderSize * 2)
+    };
+
+    DrawRectangleRounded(borderRect, 0.05f, 10, Theme::BG_Sidebar);
+    DrawRectangleRounded(cardRect, 0.05f, 10, Theme::BG_Panel);
+}
+
+void AuthLayer::DrawLoginForm(Rectangle cardRect)
+{
+    const float contentPadding = 50.0f;
+    const float inputWidth = 300.0f;
+    const float inputHeight = 40.0f;
+    const float inputSpacing = 60.0f;
+
+    float startX = cardRect.x + contentPadding;
+    float currentY = cardRect.y + 60.0f;
+
+    // Title
+    DrawTextEx(AppResources::GetFont(), "Sign in", { startX, currentY }, 60, 0, Theme::BG_Sidebar);
+
+    currentY += 100.0f;
+
+    // Username Input
+    DrawInputField(
+        { startX, currentY, inputWidth, inputHeight },
+        m_UsernameBuffer,
+        128,
+        m_EditUsername,
+        "Username..."
     );
 
-    DrawRectangleRounded(cardRect, 0.05f, 10, Theme::BG_Panel);
+    currentY += inputSpacing;
 
-    float contentPadding = 50.0f;
-    float leftColumnX = cardX + contentPadding;
-    float startY = cardY + 60.0f;
+    // Password Input
+    DrawInputField(
+        { startX, currentY, inputWidth, inputHeight },
+        m_PasswordBuffer,
+        128,
+        m_EditPassword,
+        "Password..."
+    );
 
-    Font font = AppResources::GetFont();
+    // Signup Link
+    GuiLabel({ startX, currentY + 45.0f, inputWidth, 20.0f }, "Don't have an account? Sign up!");
+}
 
-    DrawTextEx(font, "Sign in", { leftColumnX, startY }, 60, 0, Theme::BG_Sidebar);
-    
-    float inputY = startY + 100.0f;
-    if (GuiTextBox({ leftColumnX, inputY, 300, 40 }, m_UsernameBuffer, 128, m_EditUsername))
+void AuthLayer::DrawInputField(Rectangle bounds, char* buffer, int bufferSize, bool& editMode, const char* placeholder)
+{
+    if (GuiTextBox(bounds, buffer, bufferSize, editMode))
     {
-        m_EditUsername = !m_EditUsername;
+        editMode = !editMode;
     }
 
-    if (!m_EditUsername && m_UsernameBuffer[0] == '\0')
+    // Draw placeholder if empty and not focused
+    if (!editMode && buffer[0] == '\0')
     {
-        DrawTextEx(font, "Username...", { leftColumnX + 5, inputY + 10 }, 20, 0, LIGHTGRAY);
+        DrawTextEx(
+            AppResources::GetFont(),
+            placeholder,
+            { bounds.x + 5, bounds.y + 10 },
+            20,
+            0,
+            LIGHTGRAY
+        );
     }
-
-    inputY += 60.0f;
-    if (GuiTextBox({ leftColumnX, inputY, 300, 40 }, m_PasswordBuffer, 128, m_EditPassword))
-    {
-        m_EditPassword = !m_EditPassword;
-    }
-
-    if (!m_EditPassword && m_PasswordBuffer[0] == '\0')
-    {
-        DrawTextEx(font, "Password...", { leftColumnX + 5, inputY + 10 }, 20, 0, LIGHTGRAY);
-    }
-
-    GuiLabel({ leftColumnX, inputY + 45, 300, 20 }, "Don't have an account? Sign up!");
 }
 
 void AuthLayer::AttemptLogin()
 {
-    // TODO Conectar base de datos
+    // TODO: Connect to database
     bool credentialsValid = true;
 
     if (credentialsValid)
     {
         TransitionTo<AppLayer>();
-    }
-    else
-    {
-        // m_ShowError = true;
     }
 }

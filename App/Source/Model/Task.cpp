@@ -1,32 +1,19 @@
 ﻿#include "Task.h"
+#include "Utilities.h"
 
-#include <iostream>
-#include <chrono>
-#include <ctime>
 #include <string>
+#include <iostream>
 
-void Task::setDueDate(std::tm timeStruct)
+std::ostream& operator<<(std::ostream& output, const Task& task)
 {
-    std::time_t timeValue = std::mktime(&timeStruct);
-    m_dueDate = std::chrono::system_clock::from_time_t(timeValue);
+    output << "Task [" << task.getId() << "]: " << task.getTitle() << ", "
+    << TaskUtilities::formatDate(task.getDueDate());
+    return output;
 }
 
-std::string Task::getCreateDate() const
+std::ostream& operator<<(std::ostream& output, const TaskSpecification& specification)
 {
-    // Get the current calendar time as a time_t object
-    const std::time_t now = std::time(nullptr);
-
-    // Convert the time_t object to a human-readable string
-    const char* date_time_str = std::ctime(&now);
-    return date_time_str;
-}
-
-// Returns date and time using ctime
-std::string Task::getDueDate() const
-{
-    std::time_t timeValue = std::chrono::system_clock::to_time_t(m_dueDate);
-    char buffer[26]; // ctime_s needs a buffer of at least 26 characters
-    ctime_s(buffer, sizeof(buffer), &timeValue);
-
-    return buffer;
+    output << "Task [" << specification.Id << "]: " << specification.Title << ", "
+    << TaskUtilities::formatDate(specification.DueDate) << ", " << specification.Status;
+    return output;
 }
