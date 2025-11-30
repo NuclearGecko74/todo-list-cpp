@@ -9,7 +9,7 @@
 int main()
 {
     Core::ApplicationSpecification appSpec;
-    appSpec.Name = "Clash Royale 2";
+    appSpec.Name = "Rizz List";
     appSpec.WindowSpec.Width = 1920;
     appSpec.WindowSpec.Height = 1080;
     appSpec.WindowSpec.IconPath = "assets/icon.png";
