@@ -7,14 +7,18 @@
 
 class AuthLayer : public BaseLayer {
 public:
-    AuthLayer() = default;
-    ~AuthLayer() override = default;
+    AuthLayer();
+    virtual ~AuthLayer() = default;
 
-    void OnUpdate(float ts) override;
-    void OnRender() override;
+    virtual void OnUpdate(float ts) override;
+    virtual void OnRender() override;
 
 private:
     void AttemptLogin();
+
+    void DrawCardBackground(Rectangle cardRect);
+    void DrawLoginForm(Rectangle cardRect);
+    void DrawInputField(Rectangle bounds, char* buffer, int bufferSize, bool& editMode, const char* placeholder);
 
 private:
     char m_UsernameBuffer[128] = "";
