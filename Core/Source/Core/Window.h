@@ -29,6 +29,4 @@ namespace Core {
     };
 }
 
-
-
 #endif
