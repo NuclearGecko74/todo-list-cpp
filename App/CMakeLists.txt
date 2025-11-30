@@ -4,9 +4,13 @@
 
 set(SOURCES
         Source/Main.cpp
+        Source/AppResources.cpp
+        Source/AppResources.h
 
         Source/UI/AppLayer.cpp
         Source/UI/AppLayer.h
+        Source/UI/AuthLayer.cpp
+        Source/UI/AuthLayer.h
         Source/UI/DebugLayer.cpp
         Source/UI/DebugLayer.h
 
@@ -15,6 +19,7 @@ set(SOURCES
         Source/Model/TaskList.cpp
         Source/Model/TaskList.h
 
+        Source/UI/Theme.h
         Source/Model/AuthManager.cpp
         Source/Model/AuthManager.h
         

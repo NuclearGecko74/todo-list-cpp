@@ -1,6 +1,8 @@
-﻿#include "Core/Application.h"
+﻿#define RAYGUI_IMPLEMENTATION
 
-#include "UI/AppLayer.h"
+#include "AppResources.h"
+#include "Core/Application.h"
+#include "UI/AuthLayer.h"
 
 #ifndef NDEBUG
     #include "UI/DebugLayer.h"
@@ -10,17 +12,19 @@ int main()
 {
     Core::ApplicationSpecification appSpec;
     appSpec.Name = "Rizz List";
-    appSpec.WindowSpec.Width = 1920;
-    appSpec.WindowSpec.Height = 1080;
     appSpec.WindowSpec.IconPath = "assets/icon.png";
 
     Core::Application application(appSpec);
 
-    application.PushLayer<AppLayer>();
+    AppResources::Init();
+
+    application.PushLayer<AuthLayer>();
 
 #ifndef NDEBUG
     application.PushLayer<DebugLayer>();
 #endif
 
     application.Run();
+
+    AppResources::Shutdown();
 }

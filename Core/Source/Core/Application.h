@@ -9,7 +9,7 @@
 #include <string>
 #include <memory>
 #include <vector>
-#include <set>
+#include <functional>
 
 namespace Core {
     struct ApplicationSpecification {
@@ -32,17 +32,38 @@ namespace Core {
             m_LayerStack.push_back(std::make_unique<TLayer>());
         }
 
+        template<typename TLayer>
+        requires(std::is_base_of_v<Layer, TLayer>)
+        TLayer* GetLayer()
+        {
+            for (const auto& layer : m_LayerStack)
+            {
+                if (auto casted = dynamic_cast<TLayer*>(layer.get()))
+                    return casted;
+            }
+            return nullptr;
+        }
+
         Vector2 GetFramebufferSize() const;
-
         static Application& Get();
-
         static float GetAppTime();
+
+        void SubmitPostFrameAction(std::function<void()> action);
+
+        std::vector<std::unique_ptr<Layer>>& GetLayerStack() { return m_LayerStack; }
+
     private:
         ApplicationSpecification m_Specification;
         std::shared_ptr<Window> m_Window;
         bool m_Running = false;
 
         std::vector<std::unique_ptr<Layer>> m_LayerStack;
+        std::vector<std::function<void()>> m_PostFrameQueue;
+
+        friend class Layer;
+
+    public:
+        const std::string& GetName() const { return m_Specification.Name; }
     };
 }
 

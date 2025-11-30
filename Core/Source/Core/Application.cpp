@@ -42,12 +42,18 @@ namespace Core {
 
             BeginDrawing();
             {
-                ClearBackground(RAYWHITE);
+                ClearBackground(LIGHTGRAY);
 
                 for (const std::unique_ptr<Layer>& layer : m_LayerStack)
                     layer->OnRender();
             }
             EndDrawing();
+
+            for (auto& action : m_PostFrameQueue)
+            {
+                action();
+            }
+            m_PostFrameQueue.clear();
         }
     }
 
@@ -72,4 +78,8 @@ namespace Core {
         return static_cast<float>(GetTime());
     }
 
+    void Application::SubmitPostFrameAction(std::function<void()> action)
+    {
+        m_PostFrameQueue.push_back(action);
+    }
 }
