@@ -8,6 +8,11 @@
 #include "raygui.h"
 #include "UI/Theme.h"
 
+AppLayer::AppLayer()
+{
+    m_ListManager= std::make_unique<ListManager>(AppResources::GetDatabase());
+    m_TaskManager = std::make_unique<TaskManager>(AppResources::GetDatabase());
+}
 
 // Logic updates
 void AppLayer::OnUpdate(float ts)

@@ -4,6 +4,8 @@
 #include "BaseLayer.h"
 #include "Core/Layer.h"
 
+#include "Model/ListManager.h"
+
 class AppLayer : public BaseLayer {
 private:
     enum class AppScreen {
@@ -13,7 +15,7 @@ private:
         Calendar
     };
 public:
-    AppLayer() = default;
+    AppLayer();
     ~AppLayer() override = default;
 
     void OnUpdate(float ts) override;
@@ -46,7 +48,9 @@ private:
     int m_SelectedTaskIndex = -1;
 
     AppScreen m_CurrentScreen = AppScreen::Tasks;
-};
 
+    std::unique_ptr<TaskManager> m_TaskManager;
+    std::unique_ptr<ListManager> m_ListManager;
+};
 
 #endif
