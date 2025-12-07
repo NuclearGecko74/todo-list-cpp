@@ -1,10 +1,13 @@
 ﻿#include "AppLayer.h"
 
+#include <sstream>
+
 #include "Core/Application.h"
 
 #include "raylib.h"
 #include "raygui.h"
 #include "UI/Theme.h"
+
 
 // Logic updates
 void AppLayer::OnUpdate(float ts)
@@ -110,15 +113,50 @@ void AppLayer::RenderSidebar(Rectangle bounds)
 void AppLayer::RenderTopBar(Rectangle bounds)
 {
     Rectangle container = {
-        bounds.x + PADDING,
+        bounds.x + PADDING*2,
         bounds.y + PADDING,
-        bounds.width - (PADDING * 2),
+        bounds.width - (PADDING * 6),
         bounds.height - (PADDING * 2)
     };
-
-    // Draw Search Bar Area
     DrawRectangleRounded(container, 0.5f, 10, Theme::Border_Panel);
+
+    // --------------- BOTONES EN TASKVIEW ----------
+    if (m_CurrentScreen == AppScreen::Tasks)
+    {
+        float btnWidth  = container.width * 0.10f;
+        float btnHeight = container.height * 0.65f;
+        float spacing   = container.width * 0.01f;
+        float margin    = container.width * 0.0001f;
+
+        const char* tabs[3] = { "New", "Save", "Delete" };
+
+        // Posicionar a la derecha
+        for (int i = 0; i < 3; i++)
+        {
+            Rectangle btn = {
+                container.x + container.width
+                    - margin
+                    - (3 - i) * (btnWidth + spacing),
+
+                container.y + (container.height - btnHeight) * 0.5f,
+                btnWidth,
+                btnHeight
+            };
+
+            DrawRectangleRounded(btn, 0.4f, 8, RAYWHITE);
+
+            float fontSize = btnHeight * 0.5f;
+            DrawLabel(
+                tabs[i],
+                btn.x + btnWidth * 0.2f,
+                btn.y + (btnHeight - fontSize) * 0.45f,
+                (int)fontSize,
+                BLACK
+            );
+        }
+    }
 }
+
 
 void AppLayer::RenderContentArea(Rectangle bounds)
 {
@@ -183,48 +221,77 @@ bool AppLayer::DrawNavButton(const char *text, int iconId, bool isSelected, Rect
 
 std::string WrapText(const std::string& text, int fontSize, float maxWidth)
 {
-    std::string result;
-    std::string word;
-    std::string line;
+    std::string finalOutput;
+    std::stringstream ss(text);
+    std::string rawLine;
 
-    for (char c : text)
+    // Procesa cada línea SEPARADA por ENTER del usuario
+    while (std::getline(ss, rawLine, '\n'))
     {
-        if (c == ' ' || c == '\n')
+        std::string wrappedLine;
+        std::string word;
+        std::string line;
+
+        for (char c : rawLine)
         {
-            // Probar si cabe la palabra en la línea actual
-            std::string testLine = line + word + c;
-            if (MeasureText(testLine.c_str(), fontSize) > maxWidth)
+            if (c == ' ')
             {
-                result += line + "\n";
-                line = word + c;
+                std::string test = line + word + " ";
+                if (MeasureText(test.c_str(), fontSize) > maxWidth)
+                {
+                    wrappedLine += line + "\n";
+                    line = word + " ";
+                }
+                else
+                {
+                    line = test;
+                }
+                word.clear();
             }
             else
             {
-                line = testLine;
+                word += c;
+
+                // Si la palabra sola excede el límite -> forzar salto
+                if (MeasureText(word.c_str(), fontSize) > maxWidth)
+                {
+                    if (!line.empty()) wrappedLine += line + "\n";
+                    wrappedLine += word + "\n";
+                    word.clear();
+                    line.clear();
+                }
             }
-            word.clear();
+        }
+
+        // Empujar último fragmento
+        if (!word.empty())
+        {
+            if (MeasureText((line + word).c_str(), fontSize) > maxWidth)
+            {
+                wrappedLine += line + "\n" + word;
+            }
+            else
+            {
+                wrappedLine += line + word;
+            }
         }
         else
         {
-            word += c;
+            wrappedLine += line;
         }
+
+        // Agregar salto original del usuario
+        finalOutput += wrappedLine + "\n";
     }
 
-    // Última palabra
-    if (!word.empty())
-    {
-        if (MeasureText((line + word).c_str(), fontSize) > maxWidth)
-        {
-            result += line + "\n" + word;
-        }
-        else
-        {
-            result += line + word;
-        }
-    }
+    // Quitar un último salto extra
+    if (!finalOutput.empty() && finalOutput.back() == '\n')
+        finalOutput.pop_back();
 
-    return result;
+    return finalOutput;
 }
+
+
 
 void AppLayer::RenderTasksScreen(Rectangle bounds)
 {
@@ -232,11 +299,11 @@ void AppLayer::RenderTasksScreen(Rectangle bounds)
 
     // ------------------------------ LISTA DE TASKS ------------------------------
 
+
     float padding = 20.0f;
     float panelWidth = bounds.width * 0.40f;
 
-    // ----------------------- BARRA DE TEXTO ENCIMA DEL PANEL ---------------------
-    // ----------------------- BARRA DE TEXTO ENCIMA DEL PANEL ---------------------
+    // ----------------------- BARRA DE BUSQUEDA ---------------------
 
     float barHeight = 70.0f;
     float barSpacing = 15.0f;
@@ -245,7 +312,7 @@ void AppLayer::RenderTasksScreen(Rectangle bounds)
 
     Rectangle barRect = {
         bounds.x + padding + 40,
-        bounds.y + padding * 7.0f - barHeight - barSpacing,
+        bounds.y + padding * 6.0f - barHeight - barSpacing,
         panelWidth - padding,
         barHeight
     };
@@ -271,7 +338,7 @@ void AppLayer::RenderTasksScreen(Rectangle bounds)
         searchEdit = !searchEdit;
     }
 
-    // ------------- PANEL TASKS --------------
+    // ------------------ PANEL TASKS ------------------
     // Todo es proporcional de aqui asi que tomenlo en cuenta
     Rectangle panelBounds = {
         bounds.x + padding + 40
@@ -343,34 +410,52 @@ void AppLayer::RenderTasksScreen(Rectangle bounds)
     }
     DrawRectangle(panelBounds.x, panelBounds.y, panelBounds.width, panelBounds.height, Fade(BLANK, 0));
 
-    // Área recortada para contenido
+    // ----------------- Área recortada para contenido ---------------------------
     BeginScissorMode(panelBounds.x, panelBounds.y, panelBounds.width, panelBounds.height);
+
+    // ---------- Definir vector de tareas ----------
+    struct Task {
+        std::string title;
+        std::string content;
+    };
+
+    static std::vector<Task> tasks;
+    if (tasks.empty()) {
+        for (int i = 0; i < taskCount; i++) {
+            tasks.push_back({ "Titulo de la tarea " + std::to_string(i + 1),
+                              "Contenido de la tarea " + std::to_string(i + 1) + "..." });
+        }
+    }
+
+    // ---------- Variable para tarea seleccionada ----------
+    static int selectedTaskIndex = -1; // -1 = ninguna seleccionada
 
     // ---------- Loop de botones ----------
     float y = panelBounds.y - scrollY;
-    for (int i = 0; i < taskCount; i++)
+    for (int i = 0; i < tasks.size(); i++)
     {
         Rectangle btn = { panelBounds.x + 10, y, panelBounds.width - 20, btnHeight };
-        DrawRectangleRounded(btn, 0.2f, 12, Theme::BG_Panel); // 0.2f = radio, 12 segmentos
+        DrawRectangleRounded(btn, 0.2f, 12, Theme::BG_Panel);
 
-        //Aqui se asigna el nombre
-        std::string taskName = "Tarea " + std::to_string(i + 1);
+        std::string taskName = tasks[i].title;
 
         // Texto centrado
         int fontSize = 30;
-        int textWidth = MeasureText(TextFormat(taskName.c_str()), fontSize);
-        int textX = btn.x + (btn.width - textWidth) / 2;
+        int textWidth = MeasureText(taskName.c_str(), fontSize);
+        int textX = btn.x + 30;
         int textY = btn.y + (btn.height - fontSize) / 2;
-        DrawLabel(TextFormat(taskName.c_str()), textX, textY, fontSize, Theme::Text_Dark);
+        DrawLabel(taskName.c_str(), textX, textY, fontSize, Theme::Text_Dark);
+
+        // Detectar click en el botón
+        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && CheckCollisionPointRec(mouse, btn))
+        {
+            selectedTaskIndex = i;
+        }
 
         y += btnHeight + btnSpacing;
     }
     EndScissorMode();
 
-
-    // -------------- Boton Search ----------------
-
-    // --------------------------------------------
 
     // ------------------------------ TASKVIEW   ------------------------------
 
@@ -392,21 +477,22 @@ void AppLayer::RenderTasksScreen(Rectangle bounds)
         viewer.height * innerScale - 27
     };
 
-    DrawRectangleRounded(viewer,0.1f, 10, Theme::Border_Panel);
-    DrawRectangleRounded(inner, 0.1f, 12, Theme::BG_Panel);
+    DrawRectangleRounded(viewer,0.05f, 20, Theme::Border_Panel);
+    DrawRectangleRounded(inner, 0.05f, 20, Theme::BG_Panel);
 
     // --- Contenido ---
+
     // Variables
-    static std::string titleText = "Título de la tarea";
-    static std::string contentText = "Contenido de la tarea largo...";
+    std::string& titleText = (selectedTaskIndex != -1) ? tasks[selectedTaskIndex].title : *(new std::string("Titulo de la tarea"));
+    std::string& contentText = (selectedTaskIndex != -1) ? tasks[selectedTaskIndex].content : *(new std::string("Contenido de la tarea"));
     static bool titleActive = false;
     static bool contentActive = false;
 
     float paddingInner = 10.0f;
 
     // Cajas
-    Rectangle titleBox = { inner.x + paddingInner, inner.y + paddingInner, inner.width - paddingInner*2, 40 };
-    Rectangle contentBox = { inner.x + paddingInner, inner.y + 60, inner.width - paddingInner*2, inner.height - 70 };
+    Rectangle titleBox = { inner.x + paddingInner, inner.y + paddingInner, inner.width - paddingInner*2, 60 };
+    Rectangle contentBox = { inner.x + paddingInner, inner.y + 75, inner.width - paddingInner*2, inner.height - 85 };
 
     std::string contentTextWrapped = WrapText(contentText, 20, contentBox.width - 10);
 
@@ -442,7 +528,7 @@ void AppLayer::RenderTasksScreen(Rectangle bounds)
 
     // Borrar con Backspace
     static float backspaceTimer = 0.0f;
-    static const float backspaceDelay = 0.1f; // segundos entre cada borrado
+    static const float backspaceDelay = 0.05f; // segundos entre cada borrado
 
     // Dentro de tu loop de renderizado (por frame):
     float dt = GetFrameTime(); // tiempo del frame actual
@@ -472,8 +558,6 @@ void AppLayer::RenderBrowseScreen(Rectangle bounds)
 {
     Rectangle rect = { 100, 100, 200, 80 };
     DrawRectangleRounded(rect, 0.2f, 16, WHITE);
-
-
     DrawLabel("Browse View - Coming Soon", (int)bounds.x + 50, (int)bounds.y + 50, 40, Theme::Text_Dark);
 }
 
