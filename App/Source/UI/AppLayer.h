@@ -38,7 +38,7 @@ private:
 private:
     // Layout Constants
     static constexpr float SIDEBAR_WIDTH = 250.0f;
-    static constexpr float TOP_BAR_HEIGHT = 80.0f;
+    static constexpr float TOP_BAR_HEIGHT = 100.0f;
     static constexpr float PADDING = 20.0f;
 
 private:
