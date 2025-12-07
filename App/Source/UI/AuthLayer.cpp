@@ -7,6 +7,7 @@
 
 AuthLayer::AuthLayer()
 {
+    m_AuthManager = std::make_unique<AuthManager>(AppResources::GetDatabase());
 }
 
 void AuthLayer::OnUpdate(float ts)

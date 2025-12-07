@@ -4,6 +4,7 @@
 #include "BaseLayer.h"
 #include "Core/Layer.h"
 
+#include "Model/AuthManager.h"
 
 class AuthLayer : public BaseLayer {
 public:
@@ -26,8 +27,8 @@ private:
 
     bool m_EditUsername = false;
     bool m_EditPassword = false;
+
+    std::unique_ptr<AuthManager> m_AuthManager;
 };
-
-
 
 #endif
