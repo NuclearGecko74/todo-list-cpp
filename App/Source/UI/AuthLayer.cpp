@@ -243,5 +243,8 @@ void AuthLayer::AttemptLogin()
 
 void AuthLayer::AttemptRegister()
 {
-    // Aqui va tu chamba chepe
+    if (!m_AuthManager->registerUser(m_UsernameBuffer,m_PasswordBuffer))
+    {
+        return;
+    }
 }
