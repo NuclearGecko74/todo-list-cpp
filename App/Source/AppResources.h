@@ -10,10 +10,13 @@ public:
     static void Shutdown();
     static Font GetFont();
     static SQLite::Database& GetDatabase();
+    static int GetUserId();
+    static void SetUserId(const int userId);
 
 private:
     static Font s_Font;
     static std::unique_ptr<SQLite::Database> s_Database;
+    static int s_UserId;
 
     static void InitDatabase();
 };

@@ -47,7 +47,7 @@ bool AuthManager::registerUser(const std::string& username, const std::string& p
 {
     try
     {
-        SQLite::Statement query(m_db, "INSERT INTO user (username, passwordHash, createTime) VALUES (?, ?, DATETIME('now'))");
+        SQLite::Statement query(m_db, "INSERT INTO user (username, passwordHash, createDate) VALUES (?, ?, DATETIME('now'))");
 
         query.bind(1, username);
         query.bind(2, hashPassword(password));

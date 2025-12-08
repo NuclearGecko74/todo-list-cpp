@@ -7,6 +7,11 @@
 #include "Model/AuthManager.h"
 
 class AuthLayer : public BaseLayer {
+private:
+    enum class AppScreen {
+        Login = 0,
+        Register
+    };
 public:
     AuthLayer();
     virtual ~AuthLayer() = default;
@@ -22,6 +27,8 @@ private:
     void DrawInputField(Rectangle bounds, char* buffer, int bufferSize, bool& editMode, const char* placeholder);
 
 private:
+    AppScreen m_CurrentScreen = AppScreen::Login;
+
     char m_UsernameBuffer[128] = "";
     char m_PasswordBuffer[128] = "";
 

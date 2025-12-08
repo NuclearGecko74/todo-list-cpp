@@ -52,6 +52,7 @@ public:
     [[nodiscard]] inline std::chrono::system_clock::time_point getCreateDate() const { return m_createDate; }
     [[nodiscard]] inline int getUserId() const { return m_userId; }
     [[nodiscard]] std::optional<TaskSpecification> getTaskSpecification(const int id) const;
+    [[nodiscard]] std::vector<Task>& getList() { return m_list; }
 
     // methods
     void addTask(const TaskSpecification& taskSpecification);

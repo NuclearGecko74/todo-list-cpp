@@ -5,6 +5,7 @@
 
 Font AppResources::s_Font = { 0 };
 std::unique_ptr<SQLite::Database> AppResources::s_Database = nullptr;
+int AppResources::s_UserId = -1;
 
 void AppResources::Init()
 {
@@ -38,6 +39,16 @@ Font AppResources::GetFont()
 SQLite::Database& AppResources::GetDatabase()
 {
     return *s_Database;
+}
+
+int AppResources::GetUserId()
+{
+    return s_UserId;
+}
+
+void AppResources::SetUserId(const int userId)
+{
+    s_UserId = userId;
 }
 
 void AppResources::InitDatabase()
