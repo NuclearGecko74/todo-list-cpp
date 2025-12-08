@@ -12,7 +12,7 @@ int main()
 {
     Core::ApplicationSpecification appSpec;
     appSpec.Name = "Rizz List";
-    appSpec.WindowSpec.IconPath = "assets/old_icon.png";
+    appSpec.WindowSpec.IconPath = "assets/iconMin2.png";
 
     Core::Application application(appSpec);
 
