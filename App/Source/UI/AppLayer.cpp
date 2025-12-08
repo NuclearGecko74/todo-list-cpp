@@ -428,7 +428,6 @@ void AppLayer::RenderTopBar(Rectangle bounds)
             {
                 TaskSpecification newTask;
                 newTask.ListId = currentListID;
-                newTask.Title = "Nueva Tarea";
                 newTask.Description = "";
                 newTask.Status = false;
 
@@ -947,7 +946,7 @@ void AppLayer::RenderTasksScreen(Rectangle bounds)
         DrawCentered(m_YearBuffer, boxYear, "YYYY");
 
     } else {
-        const char* msg = "Selecciona una tarea";
+        const char* msg = "Pick a Task";
         int w = MeasureText(msg, 20);
         DrawText(msg, inner.x + (inner.width - w)/2, inner.y + inner.height/2, 20, LIGHTGRAY);
     }
