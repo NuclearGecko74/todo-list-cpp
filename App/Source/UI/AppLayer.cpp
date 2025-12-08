@@ -472,16 +472,12 @@ void AppLayer::RenderTopBar(Rectangle bounds)
                         spec.Title = m_EditTitleBuffer;
                         spec.Description = m_EditContentBuffer;
 
-                        // --- UNIR FECHA ---
                         if (m_DayBuffer.empty() || m_MonthBuffer.empty() || m_YearBuffer.empty())
                         {
-                            // Si falta algún dato, guardamos como "Sin Fecha"
                             spec.DueDate = std::chrono::system_clock::from_time_t(0);
                         }
                         else
                         {
-                            // Formato SQL: YYYY-MM-DD HH:MM:SS
-                            // Nos aseguramos de poner ceros a la izquierda si hace falta (ej: 5 -> 05)
                             std::string d = (m_DayBuffer.length() == 1) ? "0" + m_DayBuffer : m_DayBuffer;
                             std::string m = (m_MonthBuffer.length() == 1) ? "0" + m_MonthBuffer : m_MonthBuffer;
                             std::string y = m_YearBuffer; // Asumimos 4 dígitos
@@ -494,16 +490,12 @@ void AppLayer::RenderTopBar(Rectangle bounds)
                     }
                 }
             }
-            // ---------------------------------------------------------
-            // 2. DELETE TASK (Borrar)
-            // ---------------------------------------------------------
+
             else if (i == 2)
             {
                 if (m_SelectedTaskIndex != -1) {
-                    // Borrado lógico en BD
                     m_TaskManager->deleteTask(m_SelectedTaskIndex);
 
-                    // Resetear selección y limpiar buffers
                     m_SelectedTaskIndex = -1;
                     m_EditTitleBuffer = "";
                     m_EditContentBuffer = "";

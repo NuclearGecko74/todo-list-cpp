@@ -6,12 +6,8 @@
 
 #include "Model/AuthManager.h"
 
-class AuthLayer : public BaseLayer {
-private:
-    enum class AppScreen {
-        Login = 0,
-        Register
-    };
+class AuthLayer : public BaseLayer
+{
 public:
     AuthLayer();
     virtual ~AuthLayer() = default;
@@ -20,19 +16,27 @@ public:
     virtual void OnRender() override;
 
 private:
+    void HandleEnterKey();
     void AttemptLogin();
+    void AttemptRegister();
 
     void DrawCardBackground(Rectangle cardRect);
+    void DrawWelcomeContent(Rectangle cardRect);
+    void DrawFormContent(Rectangle cardRect);
     void DrawLoginForm(Rectangle cardRect);
     void DrawInputField(Rectangle bounds, char* buffer, int bufferSize, bool& editMode, const char* placeholder);
 
 private:
-    AppScreen m_CurrentScreen = AppScreen::Login;
+    enum class AuthMode { Welcome, Login, Register };
+
+    AuthMode m_CurrentMode = AuthMode::Welcome;
 
     char m_UsernameBuffer[128] = "";
+    char m_EmailBuffer[128] = "";
     char m_PasswordBuffer[128] = "";
 
     bool m_EditUsername = false;
+    bool m_EditEmail = false;
     bool m_EditPassword = false;
 
     std::unique_ptr<AuthManager> m_AuthManager;
