@@ -116,7 +116,15 @@ void AuthLayer::DrawInputField(Rectangle bounds, char* buffer, int bufferSize, b
 void AuthLayer::AttemptLogin()
 {
     // TODO: Connect to database
+    int userId = m_AuthManager->login(m_UsernameBuffer,m_PasswordBuffer);
+
+    if (userId == -1)
+    {
+        return;
+    }
+
     bool credentialsValid = true;
+    AppResources::SetUserId(userId);
 
     if (credentialsValid)
     {
