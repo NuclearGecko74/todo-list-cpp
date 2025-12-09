@@ -2,6 +2,7 @@
 
 #include <sstream>
 
+#include "AuthLayer.h"
 #include "Core/Application.h"
 
 #include "raylib.h"
@@ -962,5 +963,134 @@ void AppLayer::RenderCalendarScreen(Rectangle bounds)
 
 void AppLayer::RenderSettingsScreen(Rectangle bounds)
 {
-    DrawLabel("Settings View - Coming Soon", (int)bounds.x + 50, (int)bounds.y + 50, 40, Theme::Text_Dark);
+    // --- 1. FONDO ---
+    const float margin = 40.0f;
+    Rectangle panelRect = {
+        bounds.x + margin,
+        bounds.y + margin,
+        bounds.width - (margin * 2),
+        bounds.height - (margin * 2)
+    };
+
+    DrawRectangleRounded(panelRect, 0.02f, 10, Theme::BG_Panel);
+
+    // --- 2. CONFIGURACIÓN DE ESTILO ---
+    int defaultSize = GuiGetStyle(DEFAULT, TEXT_SIZE);
+    GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
+
+    // Helper Lambda para botones con estilo
+    auto DrawStyledButton = [](Rectangle r, const char* text, Color baseColor) -> bool
+    {
+        int prevBase = GuiGetStyle(BUTTON, BASE_COLOR_NORMAL);
+        int prevText = GuiGetStyle(BUTTON, TEXT_COLOR_NORMAL);
+        int prevBorder = GuiGetStyle(BUTTON, BORDER_COLOR_NORMAL);
+        int prevAlign = GuiGetStyle(BUTTON, TEXT_ALIGNMENT);
+
+        GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, ColorToInt(baseColor));
+        GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL, ColorToInt(WHITE));
+        GuiSetStyle(BUTTON, BORDER_COLOR_NORMAL, ColorToInt(baseColor));
+        GuiSetStyle(BUTTON, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER); // Asegurar texto centrado
+
+        bool clicked = GuiButton(r, text);
+
+        GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, prevBase);
+        GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL, prevText);
+        GuiSetStyle(BUTTON, BORDER_COLOR_NORMAL, prevBorder);
+        GuiSetStyle(BUTTON, TEXT_ALIGNMENT, prevAlign);
+
+        return clicked;
+    };
+
+    float startX = panelRect.x + 60.0f;
+    float cursorY = panelRect.y + 50.0f;
+    float contentWidth = panelRect.width - 120.0f;
+    if (contentWidth > 500.0f) contentWidth = 500.0f;
+
+    DrawLabel("Settings", (int)startX, (int)cursorY, 50, Theme::Text_Dark);
+    DrawRectangle((int)startX, (int)cursorY + 60, (int)contentWidth, 3, Theme::BG_Sidebar);
+    cursorY += 90.0f;
+
+
+    DrawLabel("Account", (int)startX, (int)cursorY, 24, Fade(Theme::Text_Dark, 0.5f));
+    cursorY += 40.0f;
+
+    std::string username = AppResources::GetUsername();
+
+    // 2. DIBUJAR
+    GuiLabel({startX, cursorY, contentWidth, 30},
+        GuiIconText(ICON_PLAYER, TextFormat("  Logged in as: %s", username.c_str()))
+    );
+
+    cursorY += 40.0f;
+
+    if (DrawStyledButton({startX, cursorY, contentWidth, 45}, GuiIconText(ICON_EXIT, "Log Out"), Theme::BG_Sidebar))
+    {
+        AppResources::ClearSession();
+        TransitionTo<AuthLayer>();
+    }
+    cursorY += 80.0f;
+
+    DrawLabel("Appearance", (int)startX, (int)cursorY, 24, Fade(Theme::Text_Dark, 0.5f));
+    cursorY += 40.0f;
+
+    static bool isDarkMode = true;
+
+    GuiSetStyle(TOGGLE, TEXT_ALIGNMENT, TEXT_ALIGN_LEFT);
+    GuiSetStyle(TOGGLE, TEXT_PADDING, 0);
+
+    DrawLabel("Dark Mode", (int)startX, (int)cursorY + 5, 20, Theme::Text_Dark);
+
+    Rectangle toggleRect = { startX + contentWidth - 60, cursorY, 60, 30 };
+    if (GuiToggle(toggleRect, isDarkMode ? "ON" : "OFF", &isDarkMode))
+    {
+        // Lógica de tema
+    }
+    cursorY += 80.0f;
+
+
+    DrawLabel("About & Data", (int)startX, (int)cursorY, 24, Fade(Theme::Text_Dark, 0.5f));
+    cursorY += 40.0f;
+
+    if (DrawStyledButton({startX, cursorY, contentWidth, 45}, GuiIconText(211, "View Source Code"), Theme::BG_Sidebar))
+    {
+        OpenURL("https://github.com/NuclearGecko74/todo-list-cpp");
+    }
+
+    cursorY += 55.0f;
+
+    if (DrawStyledButton({startX, cursorY, contentWidth, 45}, GuiIconText(ICON_BIN, "Clear Completed Tasks"), GRAY))
+    {
+        // 1. Iterar sobre todas las listas (Limpieza Global)
+        for (const auto& list : m_Lists)
+        {
+            // Cargar tareas de esta lista
+            auto tasks = m_TaskManager->loadTasks(list.Id);
+
+            for (const auto& task : tasks)
+            {
+                // Si la tarea está marcada como completada (Status == true)
+                if (task.getStatus())
+                {
+                    m_TaskManager->deleteTask(task.getId());
+                }
+            }
+        }
+
+        // 2. Resetear la selección visual por seguridad
+        // (Por si la tarea que tenías seleccionada en la otra pantalla se acaba de borrar)
+        m_SelectedTaskIndex = -1;
+
+        // 3. Limpiar los buffers de edición
+        m_EditTitleBuffer.clear();
+        m_EditContentBuffer.clear();
+        m_DayBuffer.clear();
+        m_MonthBuffer.clear();
+        m_YearBuffer.clear();
+    }
+
+    float footerY = panelRect.y + panelRect.height - 40.0f;
+    DrawLabel("RizzList v1.0.0", (int)startX, (int)footerY, 16, Fade(Theme::Text_Dark, 0.4f));
+
+    GuiSetStyle(DEFAULT, TEXT_SIZE, defaultSize);
+    GuiSetStyle(TOGGLE, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER);
 }

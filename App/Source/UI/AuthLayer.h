@@ -40,6 +40,8 @@ private:
     bool m_EditPassword = false;
 
     std::unique_ptr<AuthManager> m_AuthManager;
+
+    std::string m_ErrorMessage;
 };
 
 #endif

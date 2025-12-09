@@ -1,11 +1,14 @@
 #include "AppResources.h"
 
 #define RAYGUI_IMPLEMENTATION
+#include <fstream>
+
 #include "raygui.h"
 
 Font AppResources::s_Font = { 0 };
 std::unique_ptr<SQLite::Database> AppResources::s_Database = nullptr;
 int AppResources::s_UserId = -1;
+std::string AppResources::s_Username = "Guest";
 
 void AppResources::Init()
 {
@@ -89,4 +92,64 @@ void AppResources::InitDatabase()
             ");");
 
     s_Database->exec("INSERT OR IGNORE INTO user (userID, username, passwordHash) VALUES (1, 'Tester', 'dummy_hash')");
+}
+
+std::string AppResources::GetUsername()
+{
+    return s_Username;
+}
+
+void AppResources::SetUsername(const std::string& username)
+{
+    s_Username = username;
+}
+
+void AppResources::SaveSession(int userId)
+{
+    // Guardamos el ID en un archivo de texto simple
+    std::ofstream file("session.dat");
+    if (file.is_open())
+    {
+        file << userId;
+        file.close();
+    }
+}
+
+void AppResources::ClearSession()
+{
+    // Borramos el archivo
+    std::remove("session.dat");
+    s_UserId = -1;
+    s_Username = "Guest";
+}
+
+bool AppResources::LoadSession()
+{
+    std::ifstream file("session.dat");
+    if (!file.is_open()) return false;
+
+    int savedId = -1;
+    file >> savedId;
+    file.close();
+
+    if (savedId == -1) return false;
+
+    try
+    {
+        SQLite::Statement query(*s_Database, "SELECT username FROM user WHERE userID = ?");
+        query.bind(1, savedId);
+
+        if (query.executeStep())
+        {
+            s_UserId = savedId;
+            s_Username = query.getColumn("username").getString();
+            return true;
+        }
+    }
+    catch (std::exception& e)
+    {
+        printf("Error cargando sesión: %s\n", e.what());
+    }
+
+    return false;
 }
