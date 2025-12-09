@@ -190,7 +190,6 @@ void AppLayer::RenderSidebar(Rectangle bounds)
 
 void AppLayer::RenderTopBar(Rectangle bounds)
 {
-    // 1. DIBUJAR FONDO DEL CONTENEDOR
     Rectangle container = {
         bounds.x + PADDING * 2,
         bounds.y + PADDING,
@@ -201,31 +200,22 @@ void AppLayer::RenderTopBar(Rectangle bounds)
 
     if (m_CurrentScreen != AppScreen::Tasks) return;
 
-    // =================================================================================
-    // CÁLCULOS DE DISEÑO (LAYOUT)
-    // =================================================================================
+    float actionBtnWidth = 100.0f;
+    float actionBtnHeight = 40.0f;
+    float btnSpacing = 10.0f;
+    float rightSidePadding = 20.0f;
 
-    // --- LADO DERECHO (Botones de Tarea: New, Save, Delete) ---
-    float actionBtnWidth  = container.width * 0.10f;
-    float actionBtnHeight = container.height * 0.65f;
-    float spacing         = container.width * 0.01f;
-    float margin          = container.width * 0.0001f;
+    // Ajustado para 2 botones
+    float rightSideTotalWidth = (2 * actionBtnWidth) + (1 * btnSpacing) + rightSidePadding;
+    float fixedControlsWidth = 80.0f;
 
-    // Ancho total ocupado por los botones de la derecha + margen
-    float rightSideWidth = (3 * actionBtnWidth) + (3 * spacing) + margin + 50;
-
-    // --- LADO IZQUIERDO (Listas + Controles Fijos) ---
-    float fixedControlsWidth = 90.0f; // Espacio para [ + ] y [ - ]
-
-    // Área donde ocurre el SCROLL de las listas
     Rectangle scrollArea = {
         container.x + 10,
         container.y,
-        container.width - rightSideWidth - fixedControlsWidth,
+        container.width - rightSideTotalWidth - fixedControlsWidth - 20,
         container.height
     };
 
-    // Área FIJA para los botones [+] y [-] (Justo después del scroll)
     Rectangle fixedControlsArea = {
         scrollArea.x + scrollArea.width,
         container.y,
@@ -233,37 +223,25 @@ void AppLayer::RenderTopBar(Rectangle bounds)
         container.height
     };
 
-    // =================================================================================
-    // ZONA 1: LISTAS (CON SCROLL Y RENOMBRADO)
-    // =================================================================================
-
     static float listScrollX = 0.0f;
     float listTabWidth = 150.0f;
-    float listTabHeight = actionBtnHeight;
+    float listTabHeight = container.height * 0.65f;
     float listSpacing = 10.0f;
-
-    // Ancho total del contenido (solo las pestañas)
     float totalContentWidth = m_Lists.size() * (listTabWidth + listSpacing);
 
-    // --- LÓGICA DE SCROLL ---
-    // Solo permitir scroll si el mouse está SOBRE el área de listas
     if (CheckCollisionPointRec(GetMousePosition(), scrollArea))
     {
         float wheel = GetMouseWheelMove();
         if (wheel != 0)
         {
             listScrollX -= wheel * 30.0f;
-
-            // Clamping
             float maxScroll = totalContentWidth - scrollArea.width;
             if (maxScroll < 0) maxScroll = 0;
-
             if (listScrollX < 0) listScrollX = 0;
             if (listScrollX > maxScroll) listScrollX = maxScroll;
         }
     }
 
-    // --- INICIO DEL RECORTE (SCISSOR MODE) ---
     BeginScissorMode((int)scrollArea.x, (int)scrollArea.y, (int)scrollArea.width, (int)scrollArea.height);
 
     float currentX = scrollArea.x + 10 - listScrollX;
@@ -272,97 +250,69 @@ void AppLayer::RenderTopBar(Rectangle bounds)
     for (int i = 0; i < m_Lists.size(); i++)
     {
         Rectangle listRect = { currentX, centerY, listTabWidth, listTabHeight };
-
-        // Estilo visual
         bool isSelected = (i == m_SelectedListIndex);
         Color tabColor = isSelected ? Theme::Selection_Blue : RAYWHITE;
         Color textColor = isSelected ? WHITE : BLACK;
 
         DrawRectangleRounded(listRect, 0.4f, 8, tabColor);
 
-        // ------------------------------------------------------------
-        //               LÓGICA DE RENOMBRADO
-        // ------------------------------------------------------------
         if (m_RenamingListIndex == i)
         {
-            // MODO EDICIÓN: Dibujar caja de texto blanca
             Rectangle inputRect = { listRect.x + 5, listRect.y + 5, listRect.width - 10, listRect.height - 10 };
             DrawRectangleRec(inputRect, WHITE);
             DrawRectangleLinesEx(inputRect, 2, Theme::Selection_Blue);
-
-            // Dibujar texto del buffer
             DrawLabel(m_RenameListBuffer.c_str(), inputRect.x + 5, inputRect.y + 8, 20, BLACK);
 
-            // Capturar escritura
             int c;
             while ((c = GetCharPressed()) > 0) {
-                // Solo caracteres imprimibles y longitud razonable
                 if (c >= 32 && c <= 125 && m_RenameListBuffer.length() < 20)
                     m_RenameListBuffer += (char)c;
             }
-            // Borrar
             if (IsKeyPressed(KEY_BACKSPACE) && !m_RenameListBuffer.empty()) {
                 m_RenameListBuffer.pop_back();
             }
 
-            // GUARDAR (Enter)
             if (IsKeyPressed(KEY_ENTER))
             {
                 if (!m_RenameListBuffer.empty()) {
-                    m_Lists[i].Name = m_RenameListBuffer;     // Actualizar memoria
-                    m_ListManager->updateList(m_Lists[i]);    // Actualizar BD
+                    m_Lists[i].Name = m_RenameListBuffer;
+                    m_ListManager->updateList(m_Lists[i]);
                 }
-                m_RenamingListIndex = -1; // Salir de edición
+                m_RenamingListIndex = -1;
             }
-            // CANCELAR (Escape)
             else if (IsKeyPressed(KEY_ESCAPE)) {
                 m_RenamingListIndex = -1;
             }
         }
         else
         {
-            // MODO NORMAL: Dibujar etiqueta
             float fontSize = listTabHeight * 0.4f;
-            // Truncar visualmente si es muy largo (opcional)
             std::string displayName = m_Lists[i].Name;
             if (displayName.length() > 12) displayName = displayName.substr(0, 10) + "..";
 
             DrawLabel(displayName.c_str(), listRect.x + 15, listRect.y + (listRect.height - fontSize)/2, (int)fontSize, textColor);
 
-            // INTERACCIÓN MOUSE
             if (CheckCollisionPointRec(GetMousePosition(), listRect))
             {
-                // Clic Izquierdo: Seleccionar
                 if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
                 {
                     m_SelectedListIndex = i;
                     m_SelectedTaskIndex = -1;
                 }
-
-                // Clic Derecho: INICIAR RENOMBRADO
                 if (IsMouseButtonPressed(MOUSE_RIGHT_BUTTON))
                 {
                     m_RenamingListIndex = i;
-                    m_RenameListBuffer = m_Lists[i].Name; // Cargar nombre actual
+                    m_RenameListBuffer = m_Lists[i].Name;
                 }
             }
         }
-        // ------------------------------------------------------------
-
         currentX += listTabWidth + listSpacing;
     }
-
-    EndScissorMode(); // <--- FIN DEL RECORTE
-
-
-    // =================================================================================
-    // ZONA 2: CONTROLES FIJOS ([+] y [-])
-    // =================================================================================
+    EndScissorMode();
 
     float ctrlBtnSize = 35.0f;
     float ctrlY = container.y + (container.height - ctrlBtnSize) / 2;
 
-    // --- BOTÓN [+] ADD ---
     Rectangle addBtn = { fixedControlsArea.x + 5, ctrlY, ctrlBtnSize, ctrlBtnSize };
     bool hoverAdd = CheckCollisionPointRec(GetMousePosition(), addBtn);
     DrawRectangleRounded(addBtn, 0.3f, 6, hoverAdd ? LIGHTGRAY : Fade(LIGHTGRAY, 0.5f));
@@ -375,18 +325,13 @@ void AppLayer::RenderTopBar(Rectangle bounds)
         newSpec.Name = "List " + std::to_string(m_Lists.size() + 1);
         m_ListManager->createList(newSpec);
         ReloadLists();
-
-        m_SelectedListIndex = m_Lists.size() - 1; // Ir a la nueva
-        // Scroll al final
+        m_SelectedListIndex = m_Lists.size() - 1;
         if (totalContentWidth > scrollArea.width) listScrollX = totalContentWidth - scrollArea.width;
     }
 
-    // --- BOTÓN [-] DELETE ---
     Rectangle delBtn = { fixedControlsArea.x + 10 + ctrlBtnSize, ctrlY, ctrlBtnSize, ctrlBtnSize };
-
     bool canDelete = !m_Lists.empty() && m_SelectedListIndex != -1;
     bool hoverDel = canDelete && CheckCollisionPointRec(GetMousePosition(), delBtn);
-
     DrawRectangleRounded(delBtn, 0.3f, 6, hoverDel ? Color{255, 200, 200, 255} : Fade(LIGHTGRAY, 0.3f));
     DrawText("-", delBtn.x + 13, delBtn.y + 8, 20, canDelete ? RED : Fade(GRAY, 0.3f));
 
@@ -395,27 +340,22 @@ void AppLayer::RenderTopBar(Rectangle bounds)
         int idToDelete = m_Lists[m_SelectedListIndex].Id;
         m_ListManager->deleteList(idToDelete);
         ReloadLists();
-
-        // Ajustar índice tras borrar
         if (m_SelectedListIndex >= m_Lists.size()) {
             m_SelectedListIndex = std::max(0, static_cast<int>(m_Lists.size()) - 1);
         }
         if (m_Lists.empty()) m_SelectedListIndex = -1;
-
         m_SelectedTaskIndex = -1;
     }
 
+    const char* tabs[2] = { "New", "Delete" };
+    float buttonsStartY = container.y + (container.height - actionBtnHeight) * 0.5f;
+    float buttonsStartX = container.x + container.width - rightSidePadding - (2 * actionBtnWidth) - (1 * btnSpacing);
 
-    // =================================================================================
-    // ZONA 3: ACCIONES DE TAREA (DERECHA)
-    // =================================================================================
-    const char* tabs[3] = { "New", "Save", "Delete" };
-
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < 2; i++)
     {
         Rectangle btn = {
-            container.x + container.width - margin - (3 - i) * (actionBtnWidth + spacing),
-            container.y + (container.height - actionBtnHeight) * 0.5f,
+            buttonsStartX + i * (actionBtnWidth + btnSpacing),
+            buttonsStartY,
             actionBtnWidth,
             actionBtnHeight
         };
@@ -429,85 +369,25 @@ void AppLayer::RenderTopBar(Rectangle bounds)
 
         if (isHover && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
         {
-            // Seguridad: Si no hay lista seleccionada, no hacemos nada
             if (m_SelectedListIndex == -1) continue;
-
             int currentListID = m_Lists[m_SelectedListIndex].Id;
 
-            // ---------------------------------------------------------
-            // 0. NEW TASK (Crear Nueva)
-            // ---------------------------------------------------------
-            if (i == 0)
+            if (i == 0) // New
             {
                 TaskSpecification newTask;
                 newTask.ListId = currentListID;
                 newTask.Description = "";
                 newTask.Status = false;
-
-                // Guardar en BD
                 auto newId = m_TaskManager->createTask(newTask);
-
                 if (newId.has_value()) {
-                    // Seleccionar la tarea recién creada
                     m_SelectedTaskIndex = newId.value();
-
-                    // Cargar datos en los buffers de edición (Helper necesario)
                     LoadTaskToBuffer(m_SelectedTaskIndex);
                 }
             }
-            // ---------------------------------------------------------
-            // 1. SAVE TASK (Guardar Cambios)
-            // ---------------------------------------------------------
-            else if (i == 1) // --- BOTÓN SAVE ---
-            {
-                // Solo guardamos si hay tarea y lista seleccionada
-                if (m_SelectedTaskIndex != -1 && m_SelectedListIndex != -1)
-                {
-                    int currentListID = m_Lists[m_SelectedListIndex].Id;
-
-                    // 1. Recuperar la tarea original de la BD para no perder datos
-                    auto currentTasks = m_TaskManager->loadTasks(currentListID);
-
-                    auto it = std::find_if(currentTasks.begin(), currentTasks.end(),
-                        [this](const Task& t) { return t.getId() == m_SelectedTaskIndex; });
-
-                    if (it != currentTasks.end())
-                    {
-                        TaskSpecification spec;
-                        spec.Id = it->getId();
-                        spec.ListId = currentListID;
-                        spec.Status = it->getStatus();
-                        spec.CreateDate = it->getCreateDate();
-                        spec.isDeleted = it->getIsDeleted();
-
-                        // DATOS NUEVOS
-                        spec.Title = m_EditTitleBuffer;
-                        spec.Description = m_EditContentBuffer;
-
-                        if (m_DayBuffer.empty() || m_MonthBuffer.empty() || m_YearBuffer.empty())
-                        {
-                            spec.DueDate = std::chrono::system_clock::from_time_t(0);
-                        }
-                        else
-                        {
-                            std::string d = (m_DayBuffer.length() == 1) ? "0" + m_DayBuffer : m_DayBuffer;
-                            std::string m = (m_MonthBuffer.length() == 1) ? "0" + m_MonthBuffer : m_MonthBuffer;
-                            std::string y = m_YearBuffer; // Asumimos 4 dígitos
-
-                            std::string dateStr = y + "-" + m + "-" + d + " 12:00:00";
-                            spec.DueDate = TaskUtilities::stringToTimePoint(dateStr);
-                        }
-
-                        m_TaskManager->updateTask(spec);
-                    }
-                }
-            }
-
-            else if (i == 2)
+            else if (i == 1) // Delete
             {
                 if (m_SelectedTaskIndex != -1) {
                     m_TaskManager->deleteTask(m_SelectedTaskIndex);
-
                     m_SelectedTaskIndex = -1;
                     m_EditTitleBuffer = "";
                     m_EditContentBuffer = "";
@@ -649,15 +529,21 @@ std::string WrapText(const std::string& text, int fontSize, float maxWidth)
 
 void AppLayer::RenderTasksScreen(Rectangle bounds)
 {
-// SEGURIDAD
     if (m_SelectedListIndex == -1 || m_SelectedListIndex >= m_Lists.size()) return;
     int currentListID = m_Lists[m_SelectedListIndex].Id;
 
     float padding = 20.0f;
     float panelWidth = bounds.width * 0.40f;
 
-    // ----------------------- BARRA DE BÚSQUEDA ---------------------
-    float barHeight = 70.0f;
+    static int titleCursor = 0;
+    static int descCursor = 0;
+    static bool titleSelectAll = false;
+    static bool hasFocusedTitleOnce = false;
+
+    // Timer estático para manejar la repetición de teclas
+    static float inputRepeatTimer = 0.0f;
+
+    float barHeight = 50.0f;
     float barSpacing = 15.0f;
     static char searchText[128] = "";
     static bool searchEdit = false;
@@ -669,15 +555,30 @@ void AppLayer::RenderTasksScreen(Rectangle bounds)
         barHeight
     };
 
-    // Estilos Textbox (Simplificado)
+    DrawRectangleRounded(barRect, 0.5f, 10, Theme::BG_Sidebar);
+    GuiLabel({barRect.x + 15, barRect.y, 30, barHeight}, "#42#");
+
+    Rectangle inputRect = { barRect.x + 45, barRect.y + 10, barRect.width - 80, barHeight - 20 };
     GuiSetStyle(TEXTBOX, BASE_COLOR_NORMAL, 0x00000000);
     GuiSetStyle(TEXTBOX, TEXT_COLOR_NORMAL, 0xffffffff);
     GuiSetStyle(TEXTBOX, BORDER_COLOR_NORMAL, 0x00000000);
+    GuiSetStyle(TEXTBOX, TEXT_PADDING, 0);
+    GuiSetStyle(TEXTBOX, TEXT_ALIGNMENT, TEXT_ALIGN_LEFT);
 
-    DrawRectangleRounded(barRect, 0.3f, 10, Theme::BG_Sidebar);
-    if (GuiTextBox(barRect, searchText, sizeof(searchText), searchEdit)) searchEdit = !searchEdit;
+    if (GuiTextBox(inputRect, searchText, sizeof(searchText), searchEdit)) searchEdit = !searchEdit;
+    if (!searchEdit && searchText[0] == '\0') DrawTextEx(AppResources::GetFont(), "Search tasks...", { inputRect.x + 2, inputRect.y + 2 }, 20, 0, Fade(WHITE, 0.3f));
 
-    // ------------------ PANEL TASKS ------------------
+    if (searchText[0] != '\0') {
+        Rectangle clearBtn = { barRect.x + barRect.width - 35, barRect.y + 10, 30, 30 };
+        int prevBase = GuiGetStyle(BUTTON, BASE_COLOR_NORMAL);
+        int prevBorder = GuiGetStyle(BUTTON, BORDER_COLOR_NORMAL);
+        GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x00000000);
+        GuiSetStyle(BUTTON, BORDER_COLOR_NORMAL, 0x00000000);
+        if (GuiButton(clearBtn, "#113#")) searchText[0] = '\0';
+        GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, prevBase);
+        GuiSetStyle(BUTTON, BORDER_COLOR_NORMAL, prevBorder);
+    }
+
     Rectangle panelBounds = {
         bounds.x + padding + 40,
         bounds.y + padding * 7.0f,
@@ -685,7 +586,6 @@ void AppLayer::RenderTasksScreen(Rectangle bounds)
         bounds.height - padding * 9.0f
     };
 
-    // 1. CARGA Y FILTRADO
     TaskList tasks(m_Lists[m_SelectedListIndex], m_TaskManager.get());
     std::vector<TaskSpecification> displayItems;
     std::string searchStr = searchText;
@@ -709,15 +609,12 @@ void AppLayer::RenderTasksScreen(Rectangle bounds)
         displayItems = tasks.search(searchStr);
     }
 
-    // --- CÁLCULOS SCROLL ---
     float btnHeight = 70.0f;
     float btnSpacing = 15.0f;
     float contentHeight = displayItems.size() * (btnHeight + btnSpacing) + 50;
-
     static float scrollY = 0;
     static bool dragging = false;
     static float dragOffset = 0;
-
     bool contentOverflows = contentHeight > panelBounds.height;
 
     if (contentOverflows) {
@@ -728,15 +625,10 @@ void AppLayer::RenderTasksScreen(Rectangle bounds)
         float scrollableArea = panelBounds.height - handleHeight;
         float handleY = panelBounds.y + (scrollY / (contentHeight - panelBounds.height)) * scrollableArea;
         Rectangle handle = { scrollBar.x, handleY, scrollBar.width, handleHeight };
-
         DrawRectangleRounded(handle, 20.0f, 10, BLACK);
         Vector2 mouse = GetMousePosition();
-
-        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && CheckCollisionPointRec(mouse, handle)) {
-            dragging = true; dragOffset = mouse.y - handle.y;
-        }
+        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && CheckCollisionPointRec(mouse, handle)) { dragging = true; dragOffset = mouse.y - handle.y; }
         if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) dragging = false;
-
         if (dragging) {
             float newHandleY = mouse.y - dragOffset;
             float ratio = (newHandleY - panelBounds.y) / scrollableArea;
@@ -748,49 +640,36 @@ void AppLayer::RenderTasksScreen(Rectangle bounds)
         }
         if (scrollY < 0) scrollY = 0;
         if (scrollY > contentHeight - panelBounds.height) scrollY = contentHeight - panelBounds.height;
-    } else {
-        scrollY = 0; dragging = false;
-    }
+    } else { scrollY = 0; dragging = false; }
 
-    // FONDO Y RECORTE
     DrawRectangle(panelBounds.x, panelBounds.y, panelBounds.width, panelBounds.height, Fade(BLANK, 0));
     BeginScissorMode(panelBounds.x, panelBounds.y, panelBounds.width, panelBounds.height);
-
     float y = panelBounds.y - scrollY;
     Vector2 mouse = GetMousePosition();
 
-    // ================= LOOP DE BOTONES =================
     for (const auto& item : displayItems)
     {
         Rectangle btn = { panelBounds.x + 10, y, panelBounds.width - 20, btnHeight };
-
         bool isSelected = (item.Id == m_SelectedTaskIndex);
         Color btnColor = isSelected ? Theme::Selection_Blue : Theme::BG_Panel;
         Color txtColor = isSelected ? WHITE : Theme::Text_Dark;
 
         DrawRectangleRounded(btn, 0.2f, 12, btnColor);
 
-        // --- CHECKBOX ---
         float checkSize = 30.0f;
         float checkMargin = 20.0f;
         Rectangle checkRect = { btn.x + btn.width - checkSize - checkMargin, btn.y + (btnHeight - checkSize) / 2, checkSize, checkSize };
-
         DrawRectangleRounded(checkRect, 0.3f, 6, item.Status ? Theme::Border_Panel : Fade(GRAY, 0.5f));
-        // FIX: Eliminado el 5to parámetro
         DrawRectangleRoundedLines(checkRect, 0.3f, 6, item.Status ? WHITE : GRAY);
         if (item.Status) DrawLabel("v", checkRect.x + 8, checkRect.y + 2, 25, WHITE);
 
         float textStartX = btn.x + 30;
         float maxTextWidth = (checkRect.x - 10) - textStartX;
-        std::string displayTitle = item.Title;
-
+        std::string displayTitle = item.Title.empty() ? "Untitled Task" : item.Title;
         if (MeasureText(displayTitle.c_str(), 30) > maxTextWidth) {
-            while (displayTitle.length() > 3 && MeasureText((displayTitle + "...").c_str(), 30) > maxTextWidth) {
-                displayTitle.pop_back();
-            }
+            while (displayTitle.length() > 3 && MeasureText((displayTitle + "...").c_str(), 30) > maxTextWidth) displayTitle.pop_back();
             displayTitle += "...";
         }
-
         DrawLabel(displayTitle.c_str(), textStartX, btn.y + (btnHeight - 30) / 2, 30, txtColor);
 
         if (CheckCollisionPointRec(mouse, checkRect)) {
@@ -802,15 +681,63 @@ void AppLayer::RenderTasksScreen(Rectangle bounds)
             if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
                 m_SelectedTaskIndex = item.Id;
                 LoadTaskToBuffer(m_SelectedTaskIndex);
+                hasFocusedTitleOnce = false;
+                titleSelectAll = false;
+                titleCursor = 0;
+                descCursor = 0;
             }
         }
         y += btnHeight + btnSpacing;
     }
     EndScissorMode();
 
+    auto AutoSave = [this, currentListID]() {
+        if (m_SelectedTaskIndex == -1) return;
+        auto currentTasks = m_TaskManager->loadTasks(currentListID);
+        auto it = std::find_if(currentTasks.begin(), currentTasks.end(),
+            [this](const Task& t) { return t.getId() == m_SelectedTaskIndex; });
+
+        if (it != currentTasks.end())
+        {
+            TaskSpecification spec;
+            spec.Id = it->getId();
+            spec.ListId = currentListID;
+            spec.Status = it->getStatus();
+            spec.CreateDate = it->getCreateDate();
+            spec.isDeleted = it->getIsDeleted();
+            spec.Title = m_EditTitleBuffer;
+            spec.Description = m_EditContentBuffer;
+            if (m_DayBuffer.empty() || m_MonthBuffer.empty() || m_YearBuffer.empty()) {
+                spec.DueDate = std::chrono::system_clock::from_time_t(0);
+            } else {
+                std::string d = (m_DayBuffer.length() == 1) ? "0" + m_DayBuffer : m_DayBuffer;
+                std::string m = (m_MonthBuffer.length() == 1) ? "0" + m_MonthBuffer : m_MonthBuffer;
+                std::string y = m_YearBuffer;
+                std::string dateStr = y + "-" + m + "-" + d + " 12:00:00";
+                spec.DueDate = TaskUtilities::stringToTimePoint(dateStr);
+            }
+            m_TaskManager->updateTask(spec);
+        }
+    };
+
+    // Lambda Helper para repetición de teclas (Flechas, Backspace)
+    auto IsKeyActive = [&](int key) -> bool {
+        if (IsKeyPressed(key)) {
+            inputRepeatTimer = 0.4f; // Delay inicial (ms)
+            return true;
+        }
+        if (IsKeyDown(key)) {
+            inputRepeatTimer -= GetFrameTime();
+            if (inputRepeatTimer <= 0.0f) {
+                inputRepeatTimer = 0.03f; // Velocidad de repetición
+                return true;
+            }
+        }
+        return false;
+    };
+
     float viewWidth = bounds.width * 0.5f;
     Rectangle viewer = { bounds.x + bounds.width * 0.5f + 20, bounds.y + padding, bounds.width * 0.45f - 20, bounds.height - padding * 2 };
-
     float innerScale = 0.95f;
     Rectangle inner = { viewer.x + viewer.width * (1.0f - innerScale) / 2, viewer.y + 27 + viewer.height * (1.0f - innerScale) / 2, viewer.width * innerScale, viewer.height * innerScale - 27 };
 
@@ -825,124 +752,211 @@ void AppLayer::RenderTasksScreen(Rectangle bounds)
             m_DayBuffer.clear(); m_MonthBuffer.clear(); m_YearBuffer.clear();
         }
         lastSelectedIndex = m_SelectedTaskIndex;
+        hasFocusedTitleOnce = false;
+        titleSelectAll = false;
     }
 
     if (m_SelectedTaskIndex != -1)
     {
-        // Estados de foco
         static bool titleActive = false, contentActive = false;
         static bool dayActive = false, monthActive = false, yearActive = false;
 
         float paddingInner = 10.0f;
+        Rectangle titleBox = { inner.x + paddingInner, inner.y + paddingInner + 10, inner.width - paddingInner*2, 50 };
+        Rectangle contentBox = { inner.x + paddingInner, inner.y + 80, inner.width - paddingInner*2, inner.height - 150 };
 
-        // --- LAYOUT ---
-        Rectangle titleBox = { inner.x + paddingInner, inner.y + paddingInner, inner.width - paddingInner*2, 60 };
-        // Reducir altura del contenido para dar espacio a la fecha
-        Rectangle contentBox = { inner.x + paddingInner, inner.y + 75, inner.width - paddingInner*2, inner.height - 140 };
-
-        // Configuración Fecha (3 Campos)
         float bottomY = inner.y + inner.height - 45;
         float boxHeight = 35.0f;
-        float dayWidth = 40.0f; float monthWidth = 40.0f; float yearWidth = 60.0f; float spacing = 5.0f;
-
+        float dayWidth = 40.0f; float monthWidth = 40.0f; float yearWidth = 60.0f; float spacingD = 5.0f;
         Rectangle boxYear  = { inner.x + inner.width - yearWidth - 20, bottomY, yearWidth, boxHeight };
-        Rectangle boxMonth = { boxYear.x - spacing - monthWidth, bottomY, monthWidth, boxHeight };
-        Rectangle boxDay   = { boxMonth.x - spacing - dayWidth, bottomY, dayWidth, boxHeight };
+        Rectangle boxMonth = { boxYear.x - spacingD - monthWidth, bottomY, monthWidth, boxHeight };
+        Rectangle boxDay   = { boxMonth.x - spacingD - dayWidth, bottomY, dayWidth, boxHeight };
 
-        std::string contentWrapped = (m_EditContentBuffer.empty()) ? "" : WrapText(m_EditContentBuffer, 20, contentBox.width - 10);
-
-        // --- DIBUJAR FONDOS ---
-        DrawRectangleRounded(titleBox, 0.5f, 12, titleActive ? Color{200,200,200,50} : Theme::BG_Panel);
-        DrawRectangleRounded(contentBox, 0.1f, 12, contentActive ? Color{200,200,200,50} : Theme::BG_Panel);
-
-        DrawRectangleRounded(boxDay, 0.3f, 4, dayActive ? Color{230,230,250,255} : Fade(LIGHTGRAY, 0.3f));
-        DrawRectangleRounded(boxMonth, 0.3f, 4, monthActive ? Color{230,230,250,255} : Fade(LIGHTGRAY, 0.3f));
-        DrawRectangleRounded(boxYear, 0.3f, 4, yearActive ? Color{230,230,250,255} : Fade(LIGHTGRAY, 0.3f));
-
-        // --- INPUT HANDLING ---
         if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
             Vector2 mp = GetMousePosition();
+            bool prevTitleActive = titleActive;
+
             titleActive = CheckCollisionPointRec(mp, titleBox);
             contentActive = CheckCollisionPointRec(mp, contentBox);
             dayActive = CheckCollisionPointRec(mp, boxDay);
             monthActive = CheckCollisionPointRec(mp, boxMonth);
             yearActive = CheckCollisionPointRec(mp, boxYear);
-        }
 
-        // Tabulación entre fecha
-        if (IsKeyPressed(KEY_TAB)) {
-            if (dayActive) { dayActive=false; monthActive=true; }
-            else if (monthActive) { monthActive=false; yearActive=true; }
-            else if (yearActive) { yearActive=false; dayActive=true; }
-        }
+            if (titleActive) {
+                if (!prevTitleActive && !hasFocusedTitleOnce) {
+                    titleSelectAll = true;
+                    hasFocusedTitleOnce = true;
+                    titleCursor = (int)m_EditTitleBuffer.length();
+                } else {
+                    titleSelectAll = false;
+                    titleCursor = (int)m_EditTitleBuffer.length();
+                }
+            } else {
+                titleSelectAll = false;
+            }
 
-        int c;
-        while ((c = GetCharPressed()) > 0) {
-            if (titleActive && m_EditTitleBuffer.size() < 60) m_EditTitleBuffer += (char)c;
-            else if (contentActive) m_EditContentBuffer += (char)c;
-            else if (isdigit(c)) { // Solo números para fecha
-                if (dayActive && m_DayBuffer.size() < 2) m_DayBuffer += (char)c;
-                else if (monthActive && m_MonthBuffer.size() < 2) m_MonthBuffer += (char)c;
-                else if (yearActive && m_YearBuffer.size() < 4) m_YearBuffer += (char)c;
+            if (contentActive) {
+                descCursor = (int)m_EditContentBuffer.length();
             }
         }
 
-        if (IsKeyPressed(KEY_BACKSPACE) || IsKeyPressedRepeat(KEY_BACKSPACE)) {
-             if (titleActive && !m_EditTitleBuffer.empty()) m_EditTitleBuffer.pop_back();
-             if (contentActive && !m_EditContentBuffer.empty()) m_EditContentBuffer.pop_back();
-             if (dayActive && !m_DayBuffer.empty()) m_DayBuffer.pop_back();
-             if (monthActive && !m_MonthBuffer.empty()) m_MonthBuffer.pop_back();
-             if (yearActive && !m_YearBuffer.empty()) m_YearBuffer.pop_back();
+        bool changed = false;
+
+        if (titleActive) {
+            if (IsKeyActive(KEY_LEFT)) { titleCursor = std::max(0, titleCursor - 1); titleSelectAll = false; }
+            if (IsKeyActive(KEY_RIGHT)) { titleCursor = std::min((int)m_EditTitleBuffer.length(), titleCursor + 1); titleSelectAll = false; }
+
+            int c;
+            while ((c = GetCharPressed()) > 0) {
+                if (m_EditTitleBuffer.size() < 60) {
+                    if (titleSelectAll) { m_EditTitleBuffer.clear(); titleCursor = 0; titleSelectAll = false; }
+                    m_EditTitleBuffer.insert(titleCursor, 1, (char)c);
+                    titleCursor++; changed = true;
+                }
+            }
+            if (IsKeyActive(KEY_BACKSPACE)) {
+                if (titleSelectAll) { m_EditTitleBuffer.clear(); titleCursor = 0; titleSelectAll = false; changed = true; }
+                else if (titleCursor > 0 && !m_EditTitleBuffer.empty()) {
+                    m_EditTitleBuffer.erase(titleCursor - 1, 1);
+                    titleCursor--; changed = true;
+                }
+            }
         }
-        if (IsKeyPressed(KEY_ENTER) && contentActive) m_EditContentBuffer += '\n';
+        else if (contentActive) {
+            if (IsKeyActive(KEY_LEFT)) descCursor = std::max(0, descCursor - 1);
+            if (IsKeyActive(KEY_RIGHT)) descCursor = std::min((int)m_EditContentBuffer.length(), descCursor + 1);
+
+            int c;
+            while ((c = GetCharPressed()) > 0) {
+                m_EditContentBuffer.insert(descCursor, 1, (char)c);
+                descCursor++; changed = true;
+            }
+            if (IsKeyActive(KEY_BACKSPACE)) {
+                if (descCursor > 0 && !m_EditContentBuffer.empty()) {
+                    m_EditContentBuffer.erase(descCursor - 1, 1);
+                    descCursor--; changed = true;
+                }
+            }
+            if (IsKeyPressed(KEY_ENTER)) {
+                m_EditContentBuffer.insert(descCursor, 1, '\n');
+                descCursor++; changed = true;
+            }
+        }
+        else {
+            int c;
+            while ((c = GetCharPressed()) > 0) {
+                if (isdigit(c)) {
+                    if (dayActive && m_DayBuffer.size() < 2) { m_DayBuffer += (char)c; changed = true; }
+                    else if (monthActive && m_MonthBuffer.size() < 2) { m_MonthBuffer += (char)c; changed = true; }
+                    else if (yearActive && m_YearBuffer.size() < 4) { m_YearBuffer += (char)c; changed = true; }
+                }
+            }
+            if (IsKeyActive(KEY_BACKSPACE)) {
+                 if (dayActive && !m_DayBuffer.empty()) { m_DayBuffer.pop_back(); changed = true; }
+                 if (monthActive && !m_MonthBuffer.empty()) { m_MonthBuffer.pop_back(); changed = true; }
+                 if (yearActive && !m_YearBuffer.empty()) { m_YearBuffer.pop_back(); changed = true; }
+            }
+        }
+
+        if (changed) AutoSave();
+
+        if (m_EditTitleBuffer.empty() && !titleActive) {
+            DrawTextEx(AppResources::GetFont(), "Untitled Task", { titleBox.x + 5, titleBox.y + 8 }, 34, 0, Fade(GRAY, 0.4f));
+        }
 
         BeginScissorMode((int)titleBox.x, (int)titleBox.y, (int)titleBox.width, (int)titleBox.height);
-            DrawLabel(m_EditTitleBuffer.c_str(), titleBox.x + 5, titleBox.y + 10, 40, BLACK);
+            if (titleActive && titleSelectAll && !m_EditTitleBuffer.empty()) {
+                Vector2 textSize = MeasureTextEx(AppResources::GetFont(), m_EditTitleBuffer.c_str(), 34, 0);
+                DrawRectangle(titleBox.x + 5, titleBox.y + 8, textSize.x, textSize.y, Fade(Theme::Selection_Blue, 0.5f));
+            }
+            DrawTextEx(AppResources::GetFont(), m_EditTitleBuffer.c_str(), { titleBox.x + 5, titleBox.y + 8 }, 34, 0, Theme::Text_Dark);
+
+            if (titleActive && !titleSelectAll) {
+                std::string sub = m_EditTitleBuffer.substr(0, titleCursor);
+                Vector2 subSize = MeasureTextEx(AppResources::GetFont(), sub.c_str(), 34, 0);
+                if (((int)(GetTime() * 2.0f)) % 2 == 0) {
+                    DrawRectangle(titleBox.x + 5 + subSize.x, titleBox.y + 8, 2, 34, Theme::Selection_Blue);
+                }
+            }
         EndScissorMode();
+        if (titleActive) DrawRectangle(titleBox.x, titleBox.y + titleBox.height - 2, titleBox.width, 2, Theme::Selection_Blue);
 
-        BeginScissorMode((int)contentBox.x, (int)contentBox.y, (int)contentBox.width, (int)contentBox.height);
-            DrawLabel(contentWrapped.c_str(), contentBox.x + 5, contentBox.y + 5, 20, BLACK);
-        EndScissorMode();
-
-        Rectangle btnClear = { boxDay.x - 80, bottomY + 5, 25, 25 };
-
-        bool hoverClear = CheckCollisionPointRec(GetMousePosition(), btnClear);
-
-        DrawRectangleRounded(btnClear, 0.3f, 4, hoverClear ? Fade(RED, 0.2f) : Fade(GRAY, 0.2f));
-
-        DrawRectangleRoundedLines(btnClear, 0.3f, 4, hoverClear ? RED : GRAY);
-
-        DrawText("x", btnClear.x + 8, btnClear.y + 4, 20, hoverClear ? RED : GRAY);
-
-        // D) LÓGICA DE CLICK
-        if (hoverClear && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-            m_DayBuffer = "";
-            m_MonthBuffer = "";
-            m_YearBuffer = "";
+        if (m_EditContentBuffer.empty() && !contentActive) {
+            DrawTextEx(AppResources::GetFont(), "Add a description...", { contentBox.x + 5, contentBox.y + 5 }, 20, 0, Fade(GRAY, 0.4f));
         }
 
-        // 2. Etiqueta "Due:" - Entre el botón y los inputs
-        DrawLabel("Due:", boxDay.x - 45, bottomY + 8, 20, GRAY);
+        BeginScissorMode((int)contentBox.x, (int)contentBox.y, (int)contentBox.width, (int)contentBox.height);
+            float descX = contentBox.x + 5;
+            float descY = contentBox.y + 5;
+            float lineHeight = 20.0f;
+            float maxWidth = contentBox.width - 10;
+            if (descCursor > (int)m_EditContentBuffer.length()) descCursor = (int)m_EditContentBuffer.length();
 
-        // 3. Separadores "/"
+            std::string currentLine;
+            Vector2 visualCursorPos = { descX, descY };
+
+            for (int i = 0; i < m_EditContentBuffer.length(); i++)
+            {
+                char c = m_EditContentBuffer[i];
+                if (i == descCursor) {
+                    visualCursorPos = { descX + MeasureTextEx(AppResources::GetFont(), currentLine.c_str(), 20, 0).x, descY };
+                }
+                if (c == '\n') {
+                    DrawTextEx(AppResources::GetFont(), currentLine.c_str(), { descX, descY }, 20, 0, Theme::Text_Dark);
+                    descY += lineHeight;
+                    currentLine = "";
+                    continue;
+                }
+                std::string temp = currentLine + c;
+                if (MeasureTextEx(AppResources::GetFont(), temp.c_str(), 20, 0).x > maxWidth) {
+                    DrawTextEx(AppResources::GetFont(), currentLine.c_str(), { descX, descY }, 20, 0, Theme::Text_Dark);
+                    descY += lineHeight;
+                    currentLine = "";
+                    currentLine += c;
+                } else {
+                    currentLine += c;
+                }
+            }
+            DrawTextEx(AppResources::GetFont(), currentLine.c_str(), { descX, descY }, 20, 0, Theme::Text_Dark);
+
+            if (descCursor == m_EditContentBuffer.length()) {
+                visualCursorPos = { descX + MeasureTextEx(AppResources::GetFont(), currentLine.c_str(), 20, 0).x, descY };
+            }
+
+            if (contentActive && ((int)(GetTime() * 2.0f)) % 2 == 0) {
+                DrawRectangle(visualCursorPos.x, visualCursorPos.y, 2, 20, Theme::Selection_Blue);
+            }
+        EndScissorMode();
+
+        DrawRectangleRounded(boxDay, 0.3f, 4, dayActive ? Theme::Selection_Blue : Fade(LIGHTGRAY, 0.3f));
+        DrawRectangleRounded(boxMonth, 0.3f, 4, monthActive ? Theme::Selection_Blue : Fade(LIGHTGRAY, 0.3f));
+        DrawRectangleRounded(boxYear, 0.3f, 4, yearActive ? Theme::Selection_Blue : Fade(LIGHTGRAY, 0.3f));
+
+        Rectangle btnClear = { boxDay.x - 80, bottomY + 5, 25, 25 };
+        bool hoverClear = CheckCollisionPointRec(GetMousePosition(), btnClear);
+        DrawRectangleRounded(btnClear, 0.3f, 4, hoverClear ? Fade(RED, 0.2f) : Fade(GRAY, 0.2f));
+        DrawRectangleRoundedLines(btnClear, 0.3f, 4, hoverClear ? RED : GRAY);
+        DrawText("x", btnClear.x + 8, btnClear.y + 4, 20, hoverClear ? RED : GRAY);
+        if (hoverClear && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+            m_DayBuffer = ""; m_MonthBuffer = ""; m_YearBuffer = "";
+            AutoSave();
+        }
+
+        DrawLabel("Due:", boxDay.x - 45, bottomY + 8, 20, GRAY);
         DrawLabel("/", boxDay.x + dayWidth - 3, bottomY + 8, 20, GRAY);
         DrawLabel("/", boxMonth.x + monthWidth - 3, bottomY + 8, 20, GRAY);
 
-        // 4. Inputs de Fecha (Helper Lambda para centrar texto)
-        auto DrawCentered = [this](std::string& txt, Rectangle r, const char* ph)
-        {
-            if (txt.empty())
-                this->DrawLabel(ph, r.x + 5, r.y + 8, 20, Fade(GRAY, 0.5f));
-            else
-            {
+        auto DrawCentered = [this](std::string& txt, Rectangle r, const char* ph, bool active) {
+            Color txtColor = active ? WHITE : BLACK;
+            if (txt.empty()) this->DrawLabel(ph, r.x + 5, r.y + 8, 20, Fade(GRAY, 0.5f));
+            else {
                 int w = MeasureText(txt.c_str(), 20);
-                this->DrawLabel(txt.c_str(), r.x + (r.width - w)/2, r.y + 8, 20, BLACK);
+                this->DrawLabel(txt.c_str(), r.x + (r.width - w)/2, r.y + 8, 20, txtColor);
             }
         };
-
-        DrawCentered(m_DayBuffer, boxDay, "DD");
-        DrawCentered(m_MonthBuffer, boxMonth, "MM");
-        DrawCentered(m_YearBuffer, boxYear, "YYYY");
+        DrawCentered(m_DayBuffer, boxDay, "DD", dayActive);
+        DrawCentered(m_MonthBuffer, boxMonth, "MM", monthActive);
+        DrawCentered(m_YearBuffer, boxYear, "YYYY", yearActive);
 
     } else {
         const char* msg = "Pick a Task";
