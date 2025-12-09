@@ -16,7 +16,7 @@ private:
     };
 public:
     AppLayer();
-    ~AppLayer() override = default;
+    ~AppLayer() override;
 
     void OnUpdate(float ts) override;
     void OnRender() override;
@@ -66,6 +66,26 @@ private:
 
     int m_RenamingListIndex = -1; // -1 = renaming list
     std::string m_RenameListBuffer;
+
+private:
+    void DrawCalendarGrid(Rectangle bounds);
+    void DrawDayList(Rectangle bounds);
+
+    bool IsSameDate(const std::chrono::system_clock::time_point& a, int d, int m, int y);
+    int GetDaysInMonth(int month, int year);
+    int GetDayOfWeek(int d, int m, int y);
+
+    int m_CalMonth = 0;
+    int m_CalYear = 2025;
+
+    int m_SelectedDay = -1;
+    int m_SelectedMonth = -1;
+    int m_SelectedYear = -1;
+
+    std::vector<TaskSpecification> m_DayTasks;
+
+private:
+    Texture2D m_SettingsLogo;
 };
 
 #endif

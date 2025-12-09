@@ -10,11 +10,22 @@
 #include "UI/Theme.h"
 #include "Model/Utilities.h"
 
+#include <ctime>
+#include <iomanip>
+
 AppLayer::AppLayer()
 {
     m_ListManager= std::make_unique<ListManager>(AppResources::GetDatabase());
     m_TaskManager = std::make_unique<TaskManager>(AppResources::GetDatabase());
     ReloadLists();
+
+    m_SettingsLogo = LoadTexture("assets/full_icon.png");
+    SetTextureFilter(m_SettingsLogo, TEXTURE_FILTER_BILINEAR);
+}
+
+AppLayer::~AppLayer()
+{
+    UnloadTexture(m_SettingsLogo);
 }
 
 void AppLayer::ReloadLists()
@@ -117,6 +128,7 @@ void AppLayer::OnRender()
     RenderTopBar(topBarRect);
     RenderContentArea(contentRect);
 }
+
 void AppLayer::RenderSidebar(Rectangle bounds)
 {
     // Background
@@ -768,12 +780,10 @@ void AppLayer::RenderTasksScreen(Rectangle bounds)
         DrawRectangleRoundedLines(checkRect, 0.3f, 6, item.Status ? WHITE : GRAY);
         if (item.Status) DrawLabel("v", checkRect.x + 8, checkRect.y + 2, 25, WHITE);
 
-        // --- TÍTULO (TRUNCADO PARA EVITAR SCISSOR) ---
         float textStartX = btn.x + 30;
         float maxTextWidth = (checkRect.x - 10) - textStartX;
         std::string displayTitle = item.Title;
 
-        // Truncar texto si es muy largo para que no toque el checkbox
         if (MeasureText(displayTitle.c_str(), 30) > maxTextWidth) {
             while (displayTitle.length() > 3 && MeasureText((displayTitle + "...").c_str(), 30) > maxTextWidth) {
                 displayTitle.pop_back();
@@ -783,7 +793,6 @@ void AppLayer::RenderTasksScreen(Rectangle bounds)
 
         DrawLabel(displayTitle.c_str(), textStartX, btn.y + (btnHeight - 30) / 2, 30, txtColor);
 
-        // --- CLICKS ---
         if (CheckCollisionPointRec(mouse, checkRect)) {
             if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
                 TaskSpecification u = item; u.Status = !item.Status;
@@ -799,8 +808,6 @@ void AppLayer::RenderTasksScreen(Rectangle bounds)
     }
     EndScissorMode();
 
-
-    // -------------------- TASKVIEW (DERECHA) --------------------
     float viewWidth = bounds.width * 0.5f;
     Rectangle viewer = { bounds.x + bounds.width * 0.5f + 20, bounds.y + padding, bounds.width * 0.45f - 20, bounds.height - padding * 2 };
 
@@ -810,7 +817,6 @@ void AppLayer::RenderTasksScreen(Rectangle bounds)
     DrawRectangleRounded(viewer, 0.05f, 20, Theme::Border_Panel);
     DrawRectangleRounded(inner, 0.05f, 20, Theme::BG_Panel);
 
-    // Sincronizar selección
     static int lastSelectedIndex = -1;
     if (m_SelectedTaskIndex != lastSelectedIndex) {
         if (m_SelectedTaskIndex != -1) LoadTaskToBuffer(m_SelectedTaskIndex);
@@ -890,7 +896,6 @@ void AppLayer::RenderTasksScreen(Rectangle bounds)
         }
         if (IsKeyPressed(KEY_ENTER) && contentActive) m_EditContentBuffer += '\n';
 
-        // --- DIBUJAR TEXTOS ---
         BeginScissorMode((int)titleBox.x, (int)titleBox.y, (int)titleBox.width, (int)titleBox.height);
             DrawLabel(m_EditTitleBuffer.c_str(), titleBox.x + 5, titleBox.y + 10, 40, BLACK);
         EndScissorMode();
@@ -899,24 +904,14 @@ void AppLayer::RenderTasksScreen(Rectangle bounds)
             DrawLabel(contentWrapped.c_str(), contentBox.x + 5, contentBox.y + 5, 20, BLACK);
         EndScissorMode();
 
-        // -----------------------------------------------------------
-        //      SECCIÓN DE FECHA (CON BOTÓN CLEAR A LA IZQUIERDA)
-        // -----------------------------------------------------------
-
-        // 1. Botón Clear (X) - Calculado a la izquierda
         Rectangle btnClear = { boxDay.x - 80, bottomY + 5, 25, 25 };
 
-        // Detectar si el mouse está encima
         bool hoverClear = CheckCollisionPointRec(GetMousePosition(), btnClear);
 
-        // A) DIBUJAR FONDO (Rojo suave si hover, gris transparente si no)
         DrawRectangleRounded(btnClear, 0.3f, 4, hoverClear ? Fade(RED, 0.2f) : Fade(GRAY, 0.2f));
 
-        // B) DIBUJAR BORDE (Igual que tus checkboxes)
         DrawRectangleRoundedLines(btnClear, 0.3f, 4, hoverClear ? RED : GRAY);
 
-        // C) DIBUJAR LA "x" CENTRADA
-        // Ajusta el +8 y +4 si la x no queda perfectamente centrada con tu fuente
         DrawText("x", btnClear.x + 8, btnClear.y + 4, 20, hoverClear ? RED : GRAY);
 
         // D) LÓGICA DE CLICK
@@ -958,12 +953,45 @@ void AppLayer::RenderTasksScreen(Rectangle bounds)
 
 void AppLayer::RenderCalendarScreen(Rectangle bounds)
 {
-    DrawLabel("Calendar View - Coming Soon", (int)bounds.x + 50, (int)bounds.y + 50, 40, Theme::Text_Dark);
+    if (m_CalYear == 0 || m_CalYear == 2025 && m_CalMonth == 0 && m_SelectedDay == -1)
+    {
+        std::time_t t = std::time(nullptr);
+        std::tm* now = std::localtime(&t);
+        m_CalYear = now->tm_year + 1900;
+        m_CalMonth = now->tm_mon;
+
+        m_SelectedDay = now->tm_mday;
+        m_SelectedMonth = m_CalMonth;
+        m_SelectedYear = m_CalYear;
+    }
+
+    float gridWidth = bounds.width * 0.65f;
+    float padding = 20.0f;
+
+    Rectangle gridRect = {
+        bounds.x + padding,
+        bounds.y + padding,
+        gridWidth - (padding * 2),
+        bounds.height - (padding * 2)
+    };
+
+    Rectangle listRect = {
+        bounds.x + gridWidth,
+        bounds.y + padding,
+        bounds.width - gridWidth - padding,
+        bounds.height - (padding * 2)
+    };
+
+    // Fondo general
+    DrawRectangleRec(bounds, Theme::BG_Main);
+
+    // Dibujar las dos secciones
+    DrawCalendarGrid(gridRect);
+    DrawDayList(listRect);
 }
 
 void AppLayer::RenderSettingsScreen(Rectangle bounds)
 {
-    // --- 1. FONDO ---
     const float margin = 40.0f;
     Rectangle panelRect = {
         bounds.x + margin,
@@ -974,11 +1002,29 @@ void AppLayer::RenderSettingsScreen(Rectangle bounds)
 
     DrawRectangleRounded(panelRect, 0.02f, 10, Theme::BG_Panel);
 
-    // --- 2. CONFIGURACIÓN DE ESTILO ---
+    if (m_SettingsLogo.id != 0)
+    {
+        float targetHeight = panelRect.height * 0.85f;
+
+        float scale = targetHeight / (float)m_SettingsLogo.height;
+
+        float logoW = (float)m_SettingsLogo.width * scale;
+        float logoH = (float)m_SettingsLogo.height * scale;
+
+        float logoX = panelRect.x + panelRect.width - logoW - 50.0f;
+        
+        float logoY = panelRect.y + (panelRect.height - logoH) / 2.0f;
+
+        if (logoX > (panelRect.x + 550.0f))
+        {
+            DrawTextureEx(m_SettingsLogo, {logoX, logoY}, 0.0f, scale, WHITE);
+        }
+    }
+
+    // --- CONTENIDO (IZQUIERDA) ---
     int defaultSize = GuiGetStyle(DEFAULT, TEXT_SIZE);
     GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
 
-    // Helper Lambda para botones con estilo
     auto DrawStyledButton = [](Rectangle r, const char* text, Color baseColor) -> bool
     {
         int prevBase = GuiGetStyle(BUTTON, BASE_COLOR_NORMAL);
@@ -989,7 +1035,7 @@ void AppLayer::RenderSettingsScreen(Rectangle bounds)
         GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, ColorToInt(baseColor));
         GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL, ColorToInt(WHITE));
         GuiSetStyle(BUTTON, BORDER_COLOR_NORMAL, ColorToInt(baseColor));
-        GuiSetStyle(BUTTON, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER); // Asegurar texto centrado
+        GuiSetStyle(BUTTON, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER);
 
         bool clicked = GuiButton(r, text);
 
@@ -1010,13 +1056,11 @@ void AppLayer::RenderSettingsScreen(Rectangle bounds)
     DrawRectangle((int)startX, (int)cursorY + 60, (int)contentWidth, 3, Theme::BG_Sidebar);
     cursorY += 90.0f;
 
-
     DrawLabel("Account", (int)startX, (int)cursorY, 24, Fade(Theme::Text_Dark, 0.5f));
     cursorY += 40.0f;
 
     std::string username = AppResources::GetUsername();
 
-    // 2. DIBUJAR
     GuiLabel({startX, cursorY, contentWidth, 30},
         GuiIconText(ICON_PLAYER, TextFormat("  Logged in as: %s", username.c_str()))
     );
@@ -1030,24 +1074,6 @@ void AppLayer::RenderSettingsScreen(Rectangle bounds)
     }
     cursorY += 80.0f;
 
-    DrawLabel("Appearance", (int)startX, (int)cursorY, 24, Fade(Theme::Text_Dark, 0.5f));
-    cursorY += 40.0f;
-
-    static bool isDarkMode = true;
-
-    GuiSetStyle(TOGGLE, TEXT_ALIGNMENT, TEXT_ALIGN_LEFT);
-    GuiSetStyle(TOGGLE, TEXT_PADDING, 0);
-
-    DrawLabel("Dark Mode", (int)startX, (int)cursorY + 5, 20, Theme::Text_Dark);
-
-    Rectangle toggleRect = { startX + contentWidth - 60, cursorY, 60, 30 };
-    if (GuiToggle(toggleRect, isDarkMode ? "ON" : "OFF", &isDarkMode))
-    {
-        // Lógica de tema
-    }
-    cursorY += 80.0f;
-
-
     DrawLabel("About & Data", (int)startX, (int)cursorY, 24, Fade(Theme::Text_Dark, 0.5f));
     cursorY += 40.0f;
 
@@ -1060,27 +1086,20 @@ void AppLayer::RenderSettingsScreen(Rectangle bounds)
 
     if (DrawStyledButton({startX, cursorY, contentWidth, 45}, GuiIconText(ICON_BIN, "Clear Completed Tasks"), GRAY))
     {
-        // 1. Iterar sobre todas las listas (Limpieza Global)
         for (const auto& list : m_Lists)
         {
-            // Cargar tareas de esta lista
             auto tasks = m_TaskManager->loadTasks(list.Id);
 
             for (const auto& task : tasks)
             {
-                // Si la tarea está marcada como completada (Status == true)
                 if (task.getStatus())
                 {
                     m_TaskManager->deleteTask(task.getId());
                 }
             }
         }
-
-        // 2. Resetear la selección visual por seguridad
-        // (Por si la tarea que tenías seleccionada en la otra pantalla se acaba de borrar)
         m_SelectedTaskIndex = -1;
 
-        // 3. Limpiar los buffers de edición
         m_EditTitleBuffer.clear();
         m_EditContentBuffer.clear();
         m_DayBuffer.clear();
@@ -1093,4 +1112,231 @@ void AppLayer::RenderSettingsScreen(Rectangle bounds)
 
     GuiSetStyle(DEFAULT, TEXT_SIZE, defaultSize);
     GuiSetStyle(TOGGLE, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER);
+}
+
+int AppLayer::GetDaysInMonth(int month, int year)
+{
+    if (month == 1)
+    {
+        if ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0))
+            return 29;
+        return 28;
+    }
+    if (month == 3 || month == 5 || month == 8 || month == 10) return 30;
+    return 31;
+}
+
+int AppLayer::GetDayOfWeek(int d, int m, int y)
+{
+    std::tm timeIn = { 0 };
+    timeIn.tm_year = y - 1900;
+    timeIn.tm_mon = m;
+    timeIn.tm_mday = d;
+    std::mktime(&timeIn);
+    return timeIn.tm_wday;
+}
+
+bool AppLayer::IsSameDate(const std::chrono::system_clock::time_point& a, int d, int m, int y)
+{
+    auto tt = std::chrono::system_clock::to_time_t(a);
+    std::tm tm = *std::localtime(&tt);
+    return (tm.tm_year + 1900 == y && tm.tm_mon == m && tm.tm_mday == d);
+}
+
+void AppLayer::DrawCalendarGrid(Rectangle bounds)
+{
+    DrawRectangleRounded(bounds, 0.02f, 10, Theme::BG_Panel);
+
+    // --- HEADER (MES Y AÑO + BOTONES) ---
+    float headerHeight = 60.0f;
+    float startX = bounds.x + 20.0f;
+    float startY = bounds.y + 20.0f;
+
+    // Nombres de meses
+    const char* months[] = { "January", "February", "March", "April", "May", "June",
+                             "July", "August", "September", "October", "November", "December" };
+
+    // Título
+    DrawTextEx(AppResources::GetFont(), TextFormat("%s %d", months[m_CalMonth], m_CalYear),
+               { startX, startY }, 40, 0, Theme::Text_Dark);
+
+    // Botones Prev/Next (< >)
+    float btnSize = 30.0f;
+    if (GuiButton({ bounds.x + bounds.width - 80, startY + 5, btnSize, btnSize }, "#118#")) // <
+    {
+        m_CalMonth--;
+        if (m_CalMonth < 0) { m_CalMonth = 11; m_CalYear--; }
+    }
+
+    if (GuiButton({ bounds.x + bounds.width - 40, startY + 5, btnSize, btnSize }, "#119#")) // >
+    {
+        m_CalMonth++;
+        if (m_CalMonth > 11) { m_CalMonth = 0; m_CalYear++; }
+    }
+
+    // --- GRID DE DÍAS ---
+    float gridTop = startY + 60.0f;
+    float cellWidth = (bounds.width - 40) / 7.0f;
+    float cellHeight = (bounds.height - 100) / 6.0f; // 6 semanas max
+
+    // Dibujar Nombres de Días (Sun, Mon...)
+    const char* days[] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+    for (int i = 0; i < 7; i++)
+    {
+        DrawTextEx(AppResources::GetFont(), days[i],
+            { bounds.x + 20 + (i * cellWidth) + (cellWidth/2 - 15), gridTop },
+            20, 0, GRAY);
+    }
+
+    gridTop += 30.0f; // Bajar para los números
+
+    // Lógica del Grid
+    int daysInMonth = GetDaysInMonth(m_CalMonth, m_CalYear);
+    int startDayOfWeek = GetDayOfWeek(1, m_CalMonth, m_CalYear); // 0..6
+
+    int currentDay = 1;
+
+    // Iterar semanas (filas) y días (columnas)
+    for (int row = 0; row < 6; row++)
+    {
+        for (int col = 0; col < 7; col++)
+        {
+            // Espacios vacíos antes del día 1
+            if (row == 0 && col < startDayOfWeek) continue;
+
+            // Si ya pasamos el último día
+            if (currentDay > daysInMonth) break;
+
+            // Coordenadas de la celda
+            Rectangle cell = {
+                bounds.x + 20 + (col * cellWidth),
+                gridTop + (row * cellHeight),
+                cellWidth - 5,
+                cellHeight - 5
+            };
+
+            // ESTADOS VISUALES
+            bool isSelected = (currentDay == m_SelectedDay && m_CalMonth == m_SelectedMonth && m_CalYear == m_SelectedYear);
+            bool isHover = CheckCollisionPointRec(GetMousePosition(), cell);
+
+            // Fondo Celda
+            Color cellColor = Theme::BG_Panel; // Blanco por defecto
+            if (isSelected) cellColor = Theme::Selection_Blue; // Azul si seleccionado
+            else if (isHover) cellColor = Fade(LIGHTGRAY, 0.3f); // Gris si hover
+
+            DrawRectangleRounded(cell, 0.2f, 6, cellColor);
+
+            // Número del día
+            Color textColor = isSelected ? WHITE : Theme::Text_Dark;
+            DrawTextEx(AppResources::GetFont(), TextFormat("%d", currentDay),
+                       { cell.x + 10, cell.y + 10 }, 24, 0, textColor);
+
+            // --- INDICADOR DE TAREAS (El puntito) ---
+            // Buscamos si hay tareas para este día en TODAS las listas
+            // (Esto no es ultra eficiente, pero para <1000 tareas es instantáneo)
+            bool hasTask = false;
+            for (const auto& list : m_Lists)
+            {
+                auto tasks = m_TaskManager->loadTasks(list.Id);
+                for (const auto& t : tasks) {
+                    // Si tiene fecha válida Y coincide con este día
+                    if (IsSameDate(t.getDueDate(), currentDay, m_CalMonth, m_CalYear) && !t.getStatus()) {
+                        hasTask = true;
+                        break;
+                    }
+                }
+                if (hasTask) break;
+            }
+
+            if (hasTask)
+            {
+                // Dibujar puntito morado
+                DrawCircle(cell.x + cell.width/2, cell.y + cell.height - 15, 4, isSelected ? WHITE : Theme::BG_Sidebar);
+            }
+
+            // CLICK
+            if (isHover && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+            {
+                m_SelectedDay = currentDay;
+                m_SelectedMonth = m_CalMonth;
+                m_SelectedYear = m_CalYear;
+            }
+
+            currentDay++;
+        }
+    }
+}
+
+void AppLayer::DrawDayList(Rectangle bounds)
+{
+    // Fondo Panel Derecho
+    DrawRectangleRounded(bounds, 0.02f, 10, Theme::BG_Panel);
+
+    float padding = 20.0f;
+    float startX = bounds.x + padding;
+    float currentY = bounds.y + padding;
+
+    // Título: "Tasks for Oct 12"
+    if (m_SelectedDay != -1)
+    {
+        const char* months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+        DrawTextEx(AppResources::GetFont(), TextFormat("Tasks for %s %d", months[m_SelectedMonth], m_SelectedDay),
+                   { startX, currentY }, 30, 0, Theme::Text_Dark);
+
+        currentY += 50.0f;
+
+        // --- CARGAR TAREAS DEL DÍA ---
+        // Recorremos todas las listas y buscamos tareas de ese día
+        // (En una app real, guardarías esto en m_DayTasks para no hacerlo cada frame)
+        std::vector<TaskSpecification> tasksForDay;
+
+        for (const auto& list : m_Lists)
+        {
+            auto tasks = m_TaskManager->loadTasks(list.Id);
+            for (const auto& t : tasks) {
+                if (IsSameDate(t.getDueDate(), m_SelectedDay, m_SelectedMonth, m_SelectedYear)) {
+                    TaskSpecification spec;
+                    spec.Id = t.getId();
+                    spec.Title = t.getTitle();
+                    spec.Status = t.getStatus();
+                    tasksForDay.push_back(spec);
+                }
+            }
+        }
+
+        // --- LISTAR TAREAS ---
+        if (tasksForDay.empty())
+        {
+            DrawTextEx(AppResources::GetFont(), "No tasks due this day.", { startX, currentY }, 20, 0, GRAY);
+            DrawTextEx(AppResources::GetFont(), "Chill time!", { startX, currentY + 30 }, 20, 0, Fade(Theme::Selection_Blue, 0.8f));
+        }
+        else
+        {
+            // Usar Scissor por si son muchas
+            BeginScissorMode(bounds.x, currentY, bounds.width, bounds.height - 60);
+
+            for (const auto& task : tasksForDay)
+            {
+                // Tarjeta simple
+                Rectangle taskRect = { startX, currentY, bounds.width - (padding*2), 50 };
+
+                DrawRectangleRounded(taskRect, 0.3f, 6, Theme::BG_Sidebar); // Fondo Oscuro
+
+                // Texto
+                DrawTextEx(AppResources::GetFont(), task.Title.c_str(), { taskRect.x + 15, taskRect.y + 15 }, 20, 0, WHITE);
+
+                // Status (Check simple)
+                if (task.Status)
+                    DrawTextEx(AppResources::GetFont(), "Done", { taskRect.x + taskRect.width - 60, taskRect.y + 15 }, 18, 0, GREEN);
+
+                currentY += 60.0f;
+            }
+
+            EndScissorMode();
+        }
+    }
+    else
+    {
+        DrawTextEx(AppResources::GetFont(), "Select a day", { startX, currentY }, 30, 0, GRAY);
+    }
 }
