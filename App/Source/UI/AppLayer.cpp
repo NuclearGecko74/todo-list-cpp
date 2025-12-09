@@ -933,11 +933,14 @@ void AppLayer::RenderTasksScreen(Rectangle bounds)
         DrawLabel("/", boxMonth.x + monthWidth - 3, bottomY + 8, 20, GRAY);
 
         // 4. Inputs de Fecha (Helper Lambda para centrar texto)
-        auto DrawCentered = [](std::string& txt, Rectangle r, const char* ph) {
-            if (txt.empty()) DrawText(ph, r.x + 5, r.y + 8, 20, Fade(GRAY, 0.5f));
-            else {
+        auto DrawCentered = [this](std::string& txt, Rectangle r, const char* ph)
+        {
+            if (txt.empty())
+                this->DrawLabel(ph, r.x + 5, r.y + 8, 20, Fade(GRAY, 0.5f));
+            else
+            {
                 int w = MeasureText(txt.c_str(), 20);
-                DrawText(txt.c_str(), r.x + (r.width - w)/2, r.y + 8, 20, BLACK);
+                this->DrawLabel(txt.c_str(), r.x + (r.width - w)/2, r.y + 8, 20, BLACK);
             }
         };
 
