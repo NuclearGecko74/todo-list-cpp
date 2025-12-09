@@ -1012,7 +1012,7 @@ void AppLayer::RenderSettingsScreen(Rectangle bounds)
         float logoH = (float)m_SettingsLogo.height * scale;
 
         float logoX = panelRect.x + panelRect.width - logoW - 50.0f;
-        
+
         float logoY = panelRect.y + (panelRect.height - logoH) / 2.0f;
 
         if (logoX > (panelRect.x + 550.0f))
