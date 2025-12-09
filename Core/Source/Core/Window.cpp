@@ -16,6 +16,7 @@ namespace Core {
             SetConfigFlags(flags);
 
         InitWindow(m_Specification.Width, m_Specification.Height, m_Specification.Title.c_str());
+        SetExitKey(0);
 
         if (m_Specification.StartMaximized)
             MaximizeWindow();
